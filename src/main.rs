@@ -1,5 +1,12 @@
+extern crate pos_rs;
+extern crate diesel;
+
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use serde::Serialize;
+
+use self::pos_rs::*;
+use self::models::*;
+use self::diesel::prelude::*;
 
 #[derive(Serialize)]
 pub struct Book {
@@ -39,6 +46,16 @@ async fn manual_hello() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    use pos_rs::schema::users::dsl::*;
+    let connection = establish_connection();
+    let results = users
+        .limit(5)
+        .load::<User>(&connection)
+        .expect("Error loading users");
+    println!("Displaying {} users", results.len());
+    for user in results {
+        println!("{}", user.full_name);
+    }
     HttpServer::new(|| {
         App::new()
             .service(get)
