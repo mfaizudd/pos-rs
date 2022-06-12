@@ -10,7 +10,7 @@ use std::env;
 pub mod schema;
 pub mod models;
 
-pub fn establlish_connection() -> PgConnection {
+pub fn establish_connection() -> PgConnection {
     dotenv().ok();
     let database_url = env::var("DATABASE_URL")
         .expect("Database url must be set");
