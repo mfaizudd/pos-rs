@@ -30,6 +30,34 @@ async fn json() -> impl Responder {
     HttpResponse::Ok().json(book)
 }
 
+#[get("/create_user")]
+async fn create_user() -> impl Responder {
+    use pos_rs::schema::users::dsl::*;
+    let connection = establish_connection();
+    let new_user = NewUser {
+        full_name: "Fafa",
+        email: "mfaizudd@gmail.com",
+        password: "password"
+    };
+    let user: User = diesel::insert_into(users)
+        .values(&new_user)
+        .get_result(&connection)
+        .expect("Error saving new post");
+    
+    HttpResponse::Ok().json(user)
+}
+
+#[get("/get_user")]
+async fn get_user() -> impl Responder {
+    use pos_rs::schema::users::dsl::*;
+    let connection = establish_connection();
+    let results = users
+        .load::<User>(&connection)
+        .expect("Error loading users");
+    println!("Displaying {} users", results.len());
+    HttpResponse::Ok().json(results)
+}
+
 #[get("/")]
 async fn get() -> impl Responder {
     HttpResponse::Ok().body("Hello world")
@@ -46,21 +74,14 @@ async fn manual_hello() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    use pos_rs::schema::users::dsl::*;
-    let connection = establish_connection();
-    let results = users
-        .limit(5)
-        .load::<User>(&connection)
-        .expect("Error loading users");
-    println!("Displaying {} users", results.len());
-    for user in results {
-        println!("{}", user.full_name);
-    }
+    
     HttpServer::new(|| {
         App::new()
             .service(get)
             .service(post)
             .service(json)
+            .service(create_user)
+            .service(get_user)
             .route("/hey", web::get().to(manual_hello))
     })
     .bind(("127.0.0.1", 8080))?
