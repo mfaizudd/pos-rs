@@ -1,4 +1,5 @@
 use uuid::Uuid;
+
 #[derive(Queryable)]
 pub struct User {
     pub id: Uuid,
@@ -6,3 +7,4 @@ pub struct User {
     pub email: String,
     pub password: String
 }
+
