@@ -1,7 +1,9 @@
 extern crate pos_rs;
 extern crate diesel;
 
+use actix_web::middleware::Logger;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use env_logger::Env;
 use serde::Serialize;
 
 use self::pos_rs::*;
@@ -88,14 +90,12 @@ fn user_services(cfg: &mut web::ServiceConfig) {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+
+    env_logger::init_from_env(Env::default().default_filter_or("info"));
     
     HttpServer::new(|| {
         App::new()
-            .service(get)
-            .service(post)
-            .service(json)
-            .service(create_user)
-            .service(get_user)
+            .wrap(Logger::default())
             .configure(main_services)
             .configure(user_services)
             .route("/hey", web::get().to(manual_hello))
