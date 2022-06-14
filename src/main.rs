@@ -68,8 +68,22 @@ async fn post(req_body: String) -> impl Responder {
     HttpResponse::Ok().body(req_body)
 }
 
+
 async fn manual_hello() -> impl Responder {
     HttpResponse::Ok().body("Hey there!")
+}
+
+fn main_services(cfg: &mut web::ServiceConfig) {
+    cfg
+        .service(get)
+        .service(post)
+        .service(json);
+}
+
+fn user_services(cfg: &mut web::ServiceConfig) {
+    cfg
+        .service(get_user)
+        .service(create_user);
 }
 
 #[actix_web::main]
@@ -82,6 +96,8 @@ async fn main() -> std::io::Result<()> {
             .service(json)
             .service(create_user)
             .service(get_user)
+            .configure(main_services)
+            .configure(user_services)
             .route("/hey", web::get().to(manual_hello))
     })
     .bind(("127.0.0.1", 8000))?
