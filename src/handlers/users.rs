@@ -14,7 +14,7 @@ struct InputUser {
 }
 
 #[get("/users")]
-async fn get_users() -> impl Responder {
+async fn get_users(db: web::Data<Pool>) -> impl Responder {
     use schema::users::dsl::*;
     let connection = establish_connection();
     let results = users
