@@ -1,21 +1,23 @@
 use super::Pool;
 use crate::models::*;
 use actix_web::web;
+use bcrypt::{hash, verify, DEFAULT_COST};
 use diesel::prelude::*;
 use std::error::Error;
 use uuid::Uuid;
+use crate::schema::users::dsl;
 
 type DbError = Box<dyn Error + Sync + Send>;
 
 pub fn get_all(pool: web::Data<Pool>) -> Result<Vec<User>, DbError> {
-    use crate::schema::users::dsl::*;
+    use dsl::*;
     let conn = pool.get()?;
     let items = users.load::<User>(&conn)?;
     Ok(items)
 }
 
 pub fn find(uid: Uuid, pool: web::Data<Pool>) -> Result<Option<User>, DbError> {
-    use crate::schema::users::dsl::*;
+    use dsl::*;
     let conn = pool.get()?;
     let user = users
         .filter(id.eq_all(uid))
@@ -31,8 +33,8 @@ pub fn add(
     password: &str,
     pool: web::Data<Pool>,
 ) -> Result<User, DbError> {
-    use crate::schema::users::dsl;
     let conn = pool.get()?;
+    let password = &hash(password, DEFAULT_COST)?;
     let new_user = NewUser {
         full_name,
         email,
@@ -43,5 +45,29 @@ pub fn add(
     let user: User = diesel::insert_into(dsl::users)
         .values(&new_user)
         .get_result(&conn)?;
+    Ok(user)
+}
+
+pub fn login(
+    email: &str,
+    password: &str,
+    pool: web::Data<Pool>
+) -> Result<Option<User>, DbError> {
+    let conn = pool.get()?;
+    let user: Option<User> = dsl::users
+        .filter(dsl::email.eq_all(email))
+        .first::<User>(&conn)
+        .optional()?;
+    let user = if let Some(u) = user {
+        let valid = verify(password, &u.password)?;
+        if valid {
+            Some(u)
+        }
+        else {
+            None
+        }
+    } else {
+        None
+    };
     Ok(user)
 }
