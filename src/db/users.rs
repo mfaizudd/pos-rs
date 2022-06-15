@@ -58,16 +58,9 @@ pub fn login(
         .filter(dsl::email.eq_all(email))
         .first::<User>(&conn)
         .optional()?;
-    let user = if let Some(u) = user {
-        let valid = verify(password, &u.password)?;
-        if valid {
-            Some(u)
-        }
-        else {
-            None
-        }
-    } else {
-        None
+    let user = match user {
+        Some(u) => verify(password, &u.password)?.then(|| u),
+        None => None,
     };
     Ok(user)
 }
