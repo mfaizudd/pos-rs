@@ -1,10 +1,17 @@
-use actix_web::web::ServiceConfig;
-use actix_web::{get, post, put, delete, HttpResponse, Responder, services};
+use actix_web::{web, get, post, put, delete, HttpResponse, Responder, services};
 
 use diesel::prelude::*;
+use serde::Deserialize;
 use crate::models::*;
 use crate::db::*;
 use crate::schema;
+
+#[derive(Deserialize)]
+struct InputUser {
+    full_name: String,
+    email: String,
+    password: String
+}
 
 #[get("/users")]
 async fn get_users() -> impl Responder {
@@ -27,13 +34,13 @@ async fn get_user() -> impl Responder {
 }
 
 #[post("/users")]
-async fn create_user() -> impl Responder {
+async fn create_user(req: web::Json<InputUser>) -> impl Responder {
     use schema::users::dsl::*;
     let connection = establish_connection();
     let new_user = NewUser {
-        full_name: "Fafa",
-        email: "mfaizudd@gmail.com",
-        password: "password"
+        full_name: &req.full_name,
+        email: &req.email,
+        password: &req.password
     };
     let user: User = diesel::insert_into(users)
         .values(&new_user)
@@ -53,7 +60,7 @@ async fn delete_user() -> impl Responder {
     HttpResponse::Ok()
 }
 
-pub fn routes(cfg: &mut ServiceConfig) {
+pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(services![
         get_users,
         get_user,

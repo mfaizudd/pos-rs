@@ -1,9 +1,8 @@
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 use super::schema::users;
 
-#[derive(Queryable)]
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Queryable)]
 pub struct User {
     pub id: Uuid,
     pub full_name: String,
