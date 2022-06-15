@@ -8,8 +8,12 @@ edition = "2021"
 [dependencies]
 actix-web = "4"
 serde = { version = "1.0", features = ["derive"] }
-diesel = { version = "1.4.8", features = ["postgres", "uuidv07", "r2d2"] }
+diesel = { version = "1.4.8", features = ["postgres", "uuidv07", "r2d2", "chrono"] }
 dotenv = "0.15.0"
-uuid = { version = "0.8.2", features = ["v4", "serde"]}
+uuid = { version = "0.8.2", features = ["v4", "serde"] }
 env_logger = "0.9.0"
 r2d2 = "0.8.9"
+chrono = { version = "0.4.19", features = ["serde"] }
+derive_more = "0.99.17"
+bcrypt = "0.13.0"
+jsonwebtoken = "8"
