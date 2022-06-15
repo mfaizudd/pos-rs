@@ -14,7 +14,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .wrap(Logger::default())
-            .configure(handlers::routes)
+            .configure(handlers::configuration)
     })
     .bind(("127.0.0.1", 8000))?
     .run()
