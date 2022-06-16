@@ -27,3 +27,9 @@ pub struct NewUser<'a> {
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: chrono::NaiveDateTime,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct InputLogin {
+    pub email: String,
+    pub password: String,
+}
