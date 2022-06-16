@@ -44,8 +44,22 @@ async fn create_user(
 }
 
 #[put("/users/{id}")]
-async fn update_user() -> impl Responder {
-    HttpResponse::Ok()
+async fn update_user(
+    path: web::Path<uuid::Uuid>,
+    req: web::Json<InputUser>,
+    db: web::Data<Pool>,
+) -> Result<HttpResponse, Error> {
+    let uid = path.into_inner();
+    let user = web::block(move || {
+        users::update(uid, &req.full_name, &req.email, &req.password, db)
+    })
+    .await?
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(match user {
+        Some(u) => HttpResponse::Ok().json(u),
+        None => HttpResponse::NotFound().body("User not found"),
+    })
 }
 
 #[delete("/users/{id}")]

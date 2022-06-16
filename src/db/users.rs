@@ -48,6 +48,29 @@ pub fn add(
     Ok(user)
 }
 
+pub fn update(
+    uid: Uuid,
+    full_name: &str,
+    email: &str,
+    password: &str,
+    pool: web::Data<Pool>,
+) -> Result<Option<User>, DbError> {
+    let conn = pool.get()?;
+    let password = &hash(password, DEFAULT_COST)?;
+    let updated_user = NewUser {
+        full_name,
+        email,
+        password,
+        created_at: chrono::Local::now().naive_utc(),
+        updated_at: chrono::Local::now().naive_utc(),
+    };
+    let user = diesel::update(dsl::users.filter(dsl::id.eq_all(uid)))
+        .set(&updated_user)
+        .get_result::<User>(&conn)
+        .optional()?;
+    Ok(user)
+}
+
 pub fn login(
     email: &str,
     password: &str,

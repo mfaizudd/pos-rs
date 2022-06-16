@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 use super::schema::users;
 
-#[derive(Debug, Serialize, Deserialize, Queryable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable, AsChangeset)]
 pub struct User {
     pub id: Uuid,
     pub full_name: String,
@@ -12,7 +12,7 @@ pub struct User {
     pub updated_at: chrono::NaiveDateTime
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, AsChangeset)]
 #[table_name="users"]
 pub struct NewUser<'a> {
     pub full_name: &'a str,
