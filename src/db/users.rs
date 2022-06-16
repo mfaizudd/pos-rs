@@ -71,6 +71,14 @@ pub fn update(
     Ok(user)
 }
 
+pub fn delete(uid: Uuid, pool: web::Data<Pool>) -> Result<String, DbError> {
+    let conn = pool.get()?;
+    let num_deleted = diesel::delete(dsl::users.filter(dsl::id.eq_all(uid)))
+        .execute(&conn)?;
+    let data = format!("Deleted {} user(s)", num_deleted);
+    Ok(data)
+}
+
 pub fn login(
     email: &str,
     password: &str,

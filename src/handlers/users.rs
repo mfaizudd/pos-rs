@@ -1,5 +1,5 @@
 use crate::db::*;
-use actix_web::{delete, get, post, put, services, web, Error, HttpResponse, Responder};
+use actix_web::{delete, get, post, put, services, web, Error, HttpResponse};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -50,11 +50,10 @@ async fn update_user(
     db: web::Data<Pool>,
 ) -> Result<HttpResponse, Error> {
     let uid = path.into_inner();
-    let user = web::block(move || {
-        users::update(uid, &req.full_name, &req.email, &req.password, db)
-    })
-    .await?
-    .map_err(actix_web::error::ErrorInternalServerError)?;
+    let user =
+        web::block(move || users::update(uid, &req.full_name, &req.email, &req.password, db))
+            .await?
+            .map_err(actix_web::error::ErrorInternalServerError)?;
 
     Ok(match user {
         Some(u) => HttpResponse::Ok().json(u),
@@ -63,8 +62,16 @@ async fn update_user(
 }
 
 #[delete("/users/{id}")]
-async fn delete_user() -> impl Responder {
-    HttpResponse::Ok()
+async fn delete_user(
+    path: web::Path<uuid::Uuid>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, Error> {
+    let uid = path.into_inner();
+    let result = web::block(move || users::delete(uid, pool))
+        .await?
+        .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(result))
 }
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
