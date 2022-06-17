@@ -1,5 +1,6 @@
-use crate::db::*;
+use crate::{db::*, handlers::auth};
 use actix_web::{delete, get, post, put, services, web, Error, HttpResponse};
+use actix_web_httpauth::middleware::HttpAuthentication;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -9,7 +10,7 @@ struct InputUser {
     password: String,
 }
 
-#[get("/users")]
+#[get("/users", wrap = "HttpAuthentication::bearer(auth::validator)")]
 async fn get_users(db: web::Data<Pool>) -> Result<HttpResponse, Error> {
     let users = web::block(move || users::get_all(db))
         .await?
@@ -18,7 +19,7 @@ async fn get_users(db: web::Data<Pool>) -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Ok().json(users))
 }
 
-#[get("/users/{id}")]
+#[get("/users/{id}", wrap = "HttpAuthentication::bearer(auth::validator)")]
 async fn get_user(path: web::Path<uuid::Uuid>, db: web::Data<Pool>) -> Result<HttpResponse, Error> {
     let uid = path.into_inner();
     let user = web::block(move || users::find(uid, db))
@@ -31,7 +32,7 @@ async fn get_user(path: web::Path<uuid::Uuid>, db: web::Data<Pool>) -> Result<Ht
     })
 }
 
-#[post("/users")]
+#[post("/users", wrap = "HttpAuthentication::bearer(auth::validator)")]
 async fn create_user(
     req: web::Json<InputUser>,
     db: web::Data<Pool>,
@@ -43,7 +44,7 @@ async fn create_user(
     Ok(HttpResponse::Ok().json(user))
 }
 
-#[put("/users/{id}")]
+#[put("/users/{id}", wrap = "HttpAuthentication::bearer(auth::validator)")]
 async fn update_user(
     path: web::Path<uuid::Uuid>,
     req: web::Json<InputUser>,
@@ -61,7 +62,7 @@ async fn update_user(
     })
 }
 
-#[delete("/users/{id}")]
+#[delete("/users/{id}", wrap = "HttpAuthentication::bearer(auth::validator)")]
 async fn delete_user(
     path: web::Path<uuid::Uuid>,
     pool: web::Data<Pool>,
