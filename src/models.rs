@@ -34,7 +34,7 @@ pub struct Product {
 pub struct Transaction {
     pub id: Uuid,
     pub user_id: Uuid,
-    pub crated_at: chrono::NaiveDateTime
+    pub crated_at: chrono::NaiveDateTime,
 }
 
 #[derive(Identifiable, Debug, Serialize, Deserialize, Queryable)]
@@ -43,7 +43,7 @@ pub struct TransactionProduct {
     pub transaction_id: Uuid,
     pub user_id: Uuid,
     pub quantity: i32,
-    pub price: f64
+    pub price: f64,
 }
 
 #[derive(Insertable, AsChangeset)]
