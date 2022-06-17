@@ -1,4 +1,4 @@
-use super::schema::users;
+use super::schema::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -16,6 +16,17 @@ pub struct User {
     pub password: String,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: chrono::NaiveDateTime,
+}
+
+#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable)]
+pub struct Product {
+    pub id: Uuid,
+    pub name: String,
+    pub barcode: Option<String>,
+    pub price: f64,
+    pub stock: u32,
+    pub created_at: chrono::NaiveDateTime,
+    pub updated_at: chrono::NaiveDateTime
 }
 
 #[derive(Insertable, AsChangeset)]

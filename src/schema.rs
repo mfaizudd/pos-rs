@@ -3,8 +3,8 @@ table! {
         id -> Uuid,
         name -> Varchar,
         barcode -> Nullable<Varchar>,
-        price -> Nullable<Numeric>,
-        stock -> Nullable<Int4>,
+        price -> Numeric,
+        stock -> Int4,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
