@@ -1,4 +1,5 @@
 use super::schema::*;
+use diesel::Identifiable;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -8,7 +9,7 @@ pub struct Response<T: Serialize> {
     pub data: T,
 }
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable, AsChangeset)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable)]
 pub struct User {
     pub id: Uuid,
     pub full_name: String,
@@ -24,9 +25,25 @@ pub struct Product {
     pub name: String,
     pub barcode: Option<String>,
     pub price: f64,
-    pub stock: u32,
+    pub stock: i32,
     pub created_at: chrono::NaiveDateTime,
-    pub updated_at: chrono::NaiveDateTime
+    pub updated_at: chrono::NaiveDateTime,
+}
+
+#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable)]
+pub struct Transaction {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub crated_at: chrono::NaiveDateTime
+}
+
+#[derive(Identifiable, Debug, Serialize, Deserialize, Queryable)]
+#[primary_key(transaction_id, user_id)]
+pub struct TransactionProduct {
+    pub transaction_id: Uuid,
+    pub user_id: Uuid,
+    pub quantity: i32,
+    pub price: f64
 }
 
 #[derive(Insertable, AsChangeset)]
