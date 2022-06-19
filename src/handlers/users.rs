@@ -32,7 +32,7 @@ async fn get_user(path: web::Path<uuid::Uuid>, db: web::Data<Pool>) -> Result<Ht
     })
 }
 
-#[post("/users", wrap = "HttpAuthentication::bearer(auth::validator)")]
+#[post("/users")]
 async fn create_user(
     req: web::Json<InputUser>,
     db: web::Data<Pool>,
