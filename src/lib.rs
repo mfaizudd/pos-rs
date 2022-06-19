@@ -7,3 +7,7 @@ pub mod schema;
 pub mod models;
 pub mod handlers;
 pub mod db;
+
+pub struct AppState {
+    pub secret: String
+}

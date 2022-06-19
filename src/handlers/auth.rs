@@ -14,7 +14,6 @@ use actix_web_httpauth::extractors::{
     bearer::{BearerAuth, Config},
     AuthenticationError,
 };
-use dotenv::dotenv;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 
@@ -42,7 +41,6 @@ pub async fn validator(
 }
 
 fn validate_token(token: &str) -> Result<bool, jsonwebtoken::errors::Error> {
-    dotenv().ok();
     let key = env::var("JWT_SECRET").expect("No secret set");
     let key = DecodingKey::from_secret(key.as_ref());
     let validation = Validation::new(Algorithm::HS256);
@@ -57,7 +55,6 @@ async fn login(req: web::Json<InputLogin>, pool: web::Data<Pool>) -> Result<Http
         .map_err(actix_web::error::ErrorInternalServerError)?;
     match user {
         Some(u) => {
-            dotenv().ok();
             let key = env::var("JWT_SECRET").expect("No secret set");
             let key = EncodingKey::from_secret(key.as_ref());
             let duration = chrono::Utc::now() + chrono::Duration::days(1);
