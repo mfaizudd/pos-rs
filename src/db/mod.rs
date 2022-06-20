@@ -2,9 +2,12 @@ use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
 use std::env;
+use std::error::Error;
 
 pub mod users;
+pub mod products;
 pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
+pub type DbError = Box<dyn Error + Sync + Send>;
 
 pub fn establish_connection() -> PgConnection {
     let database_url = env::var("DATABASE_URL").expect("Database url must be set");

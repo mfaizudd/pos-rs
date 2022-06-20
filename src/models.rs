@@ -1,4 +1,6 @@
 use super::schema::*;
+use bigdecimal::BigDecimal;
+
 use diesel::Identifiable;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -24,7 +26,7 @@ pub struct Product {
     pub id: Uuid,
     pub name: String,
     pub barcode: Option<String>,
-    pub price: f64,
+    pub price: BigDecimal,
     pub stock: i32,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: chrono::NaiveDateTime,

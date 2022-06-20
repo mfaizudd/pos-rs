@@ -1,13 +1,10 @@
-use super::Pool;
+use super::{Pool, DbError};
 use crate::models::*;
 use crate::schema::users::dsl;
 use actix_web::web;
 use bcrypt::{hash, verify, DEFAULT_COST};
 use diesel::prelude::*;
-use std::error::Error;
 use uuid::Uuid;
-
-type DbError = Box<dyn Error + Sync + Send>;
 
 pub fn get_all(pool: web::Data<Pool>) -> Result<Vec<User>, DbError> {
     use dsl::*;
