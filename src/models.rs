@@ -58,8 +58,34 @@ pub struct NewUser<'a> {
     pub updated_at: chrono::NaiveDateTime,
 }
 
+#[derive(Insertable, AsChangeset)]
+#[table_name = "products"]
+pub struct NewProduct<'a> {
+    pub name: &'a str,
+    pub barcode: Option<&'a str>,
+    pub price: BigDecimal,
+    pub stock: i32,
+    pub created_at: chrono::NaiveDateTime,
+    pub updated_at: chrono::NaiveDateTime,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct InputLogin {
     pub email: String,
     pub password: String,
+}
+
+#[derive(Deserialize)]
+pub struct InputUser {
+    pub full_name: String,
+    pub email: String,
+    pub password: String,
+}
+
+#[derive(Deserialize)]
+pub struct InputProduct {
+    pub name: String,
+    pub barcode: Option<String>,
+    pub price: BigDecimal,
+    pub stock: i32,
 }

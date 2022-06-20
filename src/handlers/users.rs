@@ -1,14 +1,7 @@
-use crate::{db::*, handlers::auth};
+use crate::{db::*, handlers::auth, models::InputUser};
 use actix_web::{delete, get, post, put, services, web, Error, HttpResponse};
 use actix_web_httpauth::middleware::HttpAuthentication;
-use serde::Deserialize;
 
-#[derive(Deserialize)]
-struct InputUser {
-    full_name: String,
-    email: String,
-    password: String,
-}
 
 #[get("/users", wrap = "HttpAuthentication::bearer(auth::validator)")]
 async fn get_users(db: web::Data<Pool>) -> Result<HttpResponse, Error> {

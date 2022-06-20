@@ -1,9 +1,10 @@
 use actix_web::web;
+use bigdecimal::BigDecimal;
 use diesel::prelude::*;
 use diesel::{QueryDsl, RunQueryDsl};
 use uuid::Uuid;
 
-use crate::models::Product;
+use crate::models::{Product, NewProduct};
 use crate::schema::products::dsl;
 
 use super::{DbError, Pool};
@@ -26,3 +27,24 @@ pub fn get(uid: Uuid, pool: web::Data<Pool>) -> Result<Option<Product>, DbError>
     Ok(item)
 }
 
+pub fn add(
+    name: &str,
+    barcode: Option<String>,
+    price: BigDecimal,
+    stock: i32,
+    pool: web::Data<Pool>,
+) -> Result<Product, DbError> {
+    let conn = pool.get()?;
+    let product = NewProduct {
+        name,
+        barcode: barcode.as_deref(),
+        price,
+        stock,
+        created_at: chrono::Local::now().naive_utc(),
+        updated_at: chrono::Local::now().naive_utc()
+    };
+    let product = diesel::insert_into(dsl::products)
+        .values(product)
+        .get_result(&conn)?;
+    Ok(product)
+}
