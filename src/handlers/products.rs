@@ -1,5 +1,5 @@
 use actix_web::web::ServiceConfig;
-use actix_web::{get, post, services, web, Error, HttpResponse};
+use actix_web::{get, post, put, services, web, Error, HttpResponse};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use uuid::Uuid;
 
@@ -44,6 +44,34 @@ async fn create_product(
     Ok(HttpResponse::Ok().json(product))
 }
 
+#[put("/products/{id}", wrap = "HttpAuthentication::bearer(validator)")]
+async fn update_product(
+    path: web::Path<Uuid>,
+    req: web::Json<InputProduct>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, Error> {
+    let pid = path.into_inner();
+    let InputProduct {
+        name,
+        barcode,
+        price,
+        stock,
+    } = req.into_inner();
+    let product = web::block(move || db::products::update(pid, &name, barcode, price, stock, pool))
+        .await?
+        .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(match product {
+        Some(p) => HttpResponse::Ok().json(p),
+        None => HttpResponse::NotFound().json("Product update failed"),
+    })
+}
+
 pub fn routes(cfg: &mut ServiceConfig) {
-    cfg.service(services![get_products, get_product, create_product]);
+    cfg.service(services![
+        get_products,
+        get_product,
+        create_product,
+        update_product
+    ]);
 }

@@ -48,3 +48,29 @@ pub fn add(
         .get_result(&conn)?;
     Ok(product)
 }
+
+pub fn update(
+    pid: Uuid,
+    name: &str,
+    barcode: Option<String>,
+    price: BigDecimal,
+    stock: i32,
+    pool: web::Data<Pool>
+) -> Result<Option<Product>, DbError> {
+    let conn = pool.get()?;
+    let product_query = dsl::products.find(pid);
+    let product: Product = product_query.first::<Product>(&conn)?;
+    let updated_product = NewProduct {
+        name,
+        barcode: barcode.as_deref(),
+        price,
+        stock,
+        created_at: product.created_at,
+        updated_at: chrono::Local::now().naive_utc()
+    };
+    let product = diesel::update(product_query)
+        .set(updated_product)
+        .get_result::<Product>(&conn)
+        .optional()?;
+    Ok(product)
+}
