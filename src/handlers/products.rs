@@ -17,8 +17,8 @@ async fn get_products(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
 
 #[get("/products/{id}", wrap = "HttpAuthentication::bearer(validator)")]
 async fn get_product(path: web::Path<Uuid>, pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    let uid = path.into_inner();
-    let product = web::block(move || db::products::get(uid, pool))
+    let pid = path.into_inner();
+    let product = web::block(move || db::products::get(pid, pool))
         .await?
         .map_err(actix_web::error::ErrorInternalServerError)?;
     match product {

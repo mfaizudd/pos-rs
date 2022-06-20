@@ -16,11 +16,11 @@ pub fn get_all(pool: web::Data<Pool>) -> Result<Vec<Product>, DbError> {
     Ok(items)
 }
 
-pub fn get(uid: Uuid, pool: web::Data<Pool>) -> Result<Option<Product>, DbError> {
+pub fn get(pid: Uuid, pool: web::Data<Pool>) -> Result<Option<Product>, DbError> {
     use dsl::*;
     let conn = pool.get()?;
     let item = products
-        .filter(id.eq_all(uid))
+        .filter(id.eq_all(pid))
         .first::<Product>(&conn)
         .optional()?;
 
