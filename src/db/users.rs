@@ -1,4 +1,4 @@
-use super::{Pool, DbError};
+use super::{DbError, Pool};
 use crate::models::*;
 use crate::schema::users::dsl;
 use actix_web::web;
@@ -53,12 +53,13 @@ pub fn update(
     pool: web::Data<Pool>,
 ) -> Result<Option<User>, DbError> {
     let conn = pool.get()?;
+    let user: User = dsl::users.find(uid).first::<User>(&conn)?;
     let password = &hash(password, DEFAULT_COST)?;
     let updated_user = NewUser {
         full_name,
         email,
         password,
-        created_at: chrono::Local::now().naive_utc(),
+        created_at: user.created_at,
         updated_at: chrono::Local::now().naive_utc(),
     };
     let user = dsl::users.find(uid);
