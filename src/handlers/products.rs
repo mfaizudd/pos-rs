@@ -1,5 +1,5 @@
 use actix_web::web::ServiceConfig;
-use actix_web::{get, post, put, services, web, Error, HttpResponse};
+use actix_web::{delete, get, post, put, services, web, Error, HttpResponse};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use uuid::Uuid;
 
@@ -67,11 +67,25 @@ async fn update_product(
     })
 }
 
+#[delete("/products/{id}", wrap = "HttpAuthentication::bearer(validator)")]
+async fn delete_product(
+    path: web::Path<Uuid>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, Error> {
+    let pid = path.into_inner();
+    let response = web::block(move || db::products::delete(pid, pool))
+        .await?
+        .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(response))
+}
+
 pub fn routes(cfg: &mut ServiceConfig) {
     cfg.service(services![
         get_products,
         get_product,
         create_product,
-        update_product
+        update_product,
+        delete_product
     ]);
 }

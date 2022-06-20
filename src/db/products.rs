@@ -74,3 +74,11 @@ pub fn update(
         .optional()?;
     Ok(product)
 }
+
+pub fn delete(pid: Uuid, pool: web::Data<Pool>) -> Result<String, DbError> {
+    let conn = pool.get()?;
+    let product = dsl::products.find(pid);
+    let num_deleted = diesel::delete(product).execute(&conn)?;
+    let response = format!("Deleted {} product(s)", num_deleted);
+    Ok(response)
+}

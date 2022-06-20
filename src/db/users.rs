@@ -74,8 +74,8 @@ pub fn delete(uid: Uuid, pool: web::Data<Pool>) -> Result<String, DbError> {
     let conn = pool.get()?;
     let user = dsl::users.find(uid);
     let num_deleted = diesel::delete(user).execute(&conn)?;
-    let data = format!("Deleted {} user(s)", num_deleted);
-    Ok(data)
+    let response = format!("Deleted {} user(s)", num_deleted);
+    Ok(response)
 }
 
 pub fn login(email: &str, password: &str, pool: web::Data<Pool>) -> Result<Option<User>, DbError> {
