@@ -2,6 +2,7 @@ use super::schema::*;
 use bigdecimal::BigDecimal;
 
 use diesel::Identifiable;
+use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -11,12 +12,20 @@ pub struct Response<T: Serialize> {
     pub data: T,
 }
 
+#[derive(DbEnum, Debug, Serialize, Deserialize)]
+pub enum Role {
+    Admin,
+    User
+}
+
 #[derive(Debug, Serialize, Deserialize, Queryable, Identifiable)]
+#[table_name="users"]
 pub struct User {
     pub id: Uuid,
     pub full_name: String,
     pub email: String,
     pub password: String,
+    pub role: Role,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: chrono::NaiveDateTime,
 }
@@ -54,6 +63,7 @@ pub struct NewUser<'a> {
     pub full_name: &'a str,
     pub email: &'a str,
     pub password: &'a str,
+    pub role: Option<Role>,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: chrono::NaiveDateTime,
 }
@@ -80,6 +90,7 @@ pub struct InputUser {
     pub full_name: String,
     pub email: String,
     pub password: String,
+    pub role: Option<Role>
 }
 
 #[derive(Deserialize)]

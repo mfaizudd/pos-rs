@@ -28,11 +28,15 @@ table! {
 }
 
 table! {
+    use diesel::sql_types::*;
+    use crate::models::RoleMapping;
+
     users (id) {
         id -> Uuid,
         full_name -> Varchar,
         email -> Varchar,
         password -> Varchar,
+        role -> RoleMapping,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }

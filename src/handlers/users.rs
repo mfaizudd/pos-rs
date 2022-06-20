@@ -30,7 +30,13 @@ async fn create_user(
     req: web::Json<InputUser>,
     db: web::Data<Pool>,
 ) -> Result<HttpResponse, Error> {
-    let user = web::block(move || users::add(&req.full_name, &req.email, &req.password, db))
+    let InputUser {
+        full_name,
+        email,
+        password,
+        role
+    } = req.into_inner();
+    let user = web::block(move || users::add(&full_name, &email, &password, role, db))
         .await?
         .map_err(actix_web::error::ErrorInternalServerError)?;
 
@@ -44,8 +50,14 @@ async fn update_user(
     db: web::Data<Pool>,
 ) -> Result<HttpResponse, Error> {
     let uid = path.into_inner();
+    let InputUser {
+        full_name, 
+        email,
+        password,
+        role
+    } = req.into_inner();
     let user =
-        web::block(move || users::update(uid, &req.full_name, &req.email, &req.password, db))
+        web::block(move || users::update(uid, &full_name, &email, &password, role, db))
             .await?
             .map_err(actix_web::error::ErrorInternalServerError)?;
 

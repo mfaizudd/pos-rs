@@ -28,6 +28,7 @@ pub fn add(
     full_name: &str,
     email: &str,
     password: &str,
+    role: Option<Role>,
     pool: web::Data<Pool>,
 ) -> Result<User, DbError> {
     let conn = pool.get()?;
@@ -36,6 +37,7 @@ pub fn add(
         full_name,
         email,
         password,
+        role,
         created_at: chrono::Local::now().naive_utc(),
         updated_at: chrono::Local::now().naive_utc(),
     };
@@ -50,6 +52,7 @@ pub fn update(
     full_name: &str,
     email: &str,
     password: &str,
+    role: Option<Role>,
     pool: web::Data<Pool>,
 ) -> Result<Option<User>, DbError> {
     let conn = pool.get()?;
@@ -59,6 +62,7 @@ pub fn update(
         full_name,
         email,
         password,
+        role,
         created_at: user.created_at,
         updated_at: chrono::Local::now().naive_utc(),
     };
