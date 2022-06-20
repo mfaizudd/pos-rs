@@ -4,7 +4,7 @@ use diesel::prelude::*;
 use diesel::{QueryDsl, RunQueryDsl};
 use uuid::Uuid;
 
-use crate::models::{Product, NewProduct};
+use crate::models::{NewProduct, Product};
 use crate::schema::products::dsl;
 
 use super::{DbError, Pool};
@@ -41,7 +41,7 @@ pub fn add(
         price,
         stock,
         created_at: chrono::Local::now().naive_utc(),
-        updated_at: chrono::Local::now().naive_utc()
+        updated_at: chrono::Local::now().naive_utc(),
     };
     let product = diesel::insert_into(dsl::products)
         .values(product)
@@ -55,18 +55,22 @@ pub fn update(
     barcode: Option<String>,
     price: BigDecimal,
     stock: i32,
-    pool: web::Data<Pool>
+    pool: web::Data<Pool>,
 ) -> Result<Option<Product>, DbError> {
     let conn = pool.get()?;
     let product_query = dsl::products.find(pid);
-    let product: Product = product_query.first::<Product>(&conn)?;
+    let product: Option<Product> = product_query.first::<Product>(&conn).optional()?;
+    let product = match product {
+        Some(p) => p,
+        None => return Ok(None),
+    };
     let updated_product = NewProduct {
         name,
         barcode: barcode.as_deref(),
         price,
         stock,
         created_at: product.created_at,
-        updated_at: chrono::Local::now().naive_utc()
+        updated_at: chrono::Local::now().naive_utc(),
     };
     let product = diesel::update(product_query)
         .set(updated_product)

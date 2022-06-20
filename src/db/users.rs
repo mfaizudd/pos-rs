@@ -56,7 +56,11 @@ pub fn update(
     pool: web::Data<Pool>,
 ) -> Result<Option<User>, DbError> {
     let conn = pool.get()?;
-    let user: User = dsl::users.find(uid).first::<User>(&conn)?;
+    let user: Option<User> = dsl::users.find(uid).first::<User>(&conn).optional()?;
+    let user = match user {
+        Some(u) => u,
+        None => return Ok(None),
+    };
     let password = &hash(password, DEFAULT_COST)?;
     let updated_user = NewUser {
         full_name,
