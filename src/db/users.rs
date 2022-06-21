@@ -1,13 +1,10 @@
-use super::Pool;
+use super::{DbError, Pool};
 use crate::models::*;
+use crate::schema::users::dsl;
 use actix_web::web;
 use bcrypt::{hash, verify, DEFAULT_COST};
 use diesel::prelude::*;
-use std::error::Error;
 use uuid::Uuid;
-use crate::schema::users::dsl;
-
-type DbError = Box<dyn Error + Sync + Send>;
 
 pub fn get_all(pool: web::Data<Pool>) -> Result<Vec<User>, DbError> {
     use dsl::*;
@@ -31,6 +28,7 @@ pub fn add(
     full_name: &str,
     email: &str,
     password: &str,
+    role: Option<Role>,
     pool: web::Data<Pool>,
 ) -> Result<User, DbError> {
     let conn = pool.get()?;
@@ -39,6 +37,7 @@ pub fn add(
         full_name,
         email,
         password,
+        role,
         created_at: chrono::Local::now().naive_utc(),
         updated_at: chrono::Local::now().naive_utc(),
     };
@@ -53,18 +52,26 @@ pub fn update(
     full_name: &str,
     email: &str,
     password: &str,
+    role: Option<Role>,
     pool: web::Data<Pool>,
 ) -> Result<Option<User>, DbError> {
     let conn = pool.get()?;
+    let user: Option<User> = dsl::users.find(uid).first::<User>(&conn).optional()?;
+    let user = match user {
+        Some(u) => u,
+        None => return Ok(None),
+    };
     let password = &hash(password, DEFAULT_COST)?;
     let updated_user = NewUser {
         full_name,
         email,
         password,
-        created_at: chrono::Local::now().naive_utc(),
+        role,
+        created_at: user.created_at,
         updated_at: chrono::Local::now().naive_utc(),
     };
-    let user = diesel::update(dsl::users.filter(dsl::id.eq_all(uid)))
+    let user = dsl::users.find(uid);
+    let user = diesel::update(user)
         .set(&updated_user)
         .get_result::<User>(&conn)
         .optional()?;
@@ -73,17 +80,13 @@ pub fn update(
 
 pub fn delete(uid: Uuid, pool: web::Data<Pool>) -> Result<String, DbError> {
     let conn = pool.get()?;
-    let num_deleted = diesel::delete(dsl::users.filter(dsl::id.eq_all(uid)))
-        .execute(&conn)?;
-    let data = format!("Deleted {} user(s)", num_deleted);
-    Ok(data)
+    let user = dsl::users.find(uid);
+    let num_deleted = diesel::delete(user).execute(&conn)?;
+    let response = format!("Deleted {} user(s)", num_deleted);
+    Ok(response)
 }
 
-pub fn login(
-    email: &str,
-    password: &str,
-    pool: web::Data<Pool>
-) -> Result<Option<User>, DbError> {
+pub fn login(email: &str, password: &str, pool: web::Data<Pool>) -> Result<Option<User>, DbError> {
     let conn = pool.get()?;
     let user: Option<User> = dsl::users
         .filter(dsl::email.eq_all(email))
