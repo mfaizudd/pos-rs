@@ -41,7 +41,7 @@ pub async fn validator(
 }
 
 fn validate_token(token: &str) -> Result<bool, jsonwebtoken::errors::Error> {
-    let key = env::var("JWT_SECRET").expect("No secret set");
+    let key = env::var("SECRET").expect("No secret set");
     let key = DecodingKey::from_secret(key.as_ref());
     let validation = Validation::new(Algorithm::HS256);
     decode::<Claims>(token, &key, &validation)?;
