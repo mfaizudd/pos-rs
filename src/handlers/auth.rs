@@ -65,8 +65,11 @@ async fn issue_jwt(req: web::Json<InputLogin>, pool: web::Data<Pool>, state: web
                 company: String::new(),
                 exp: duration.timestamp().into(),
             };
-            let token = encode(&Header::default(), &claims, key).expect("Token creation failed");
-            Ok(HttpResponse::Ok().json(token))
+            let token = encode(&Header::default(), &claims, key);
+            match token {
+                Ok(t) => Ok(HttpResponse::Ok().json(t)),
+                Err(_) => Ok(HttpResponse::InternalServerError().body("Token creation failed"))
+            }
         }
         None => Ok(HttpResponse::Unauthorized().json("Username/Password not found")),
     }
