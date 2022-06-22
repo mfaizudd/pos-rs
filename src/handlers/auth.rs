@@ -50,8 +50,8 @@ fn validate_token(token: &str, key: &str) -> Result<bool, jsonwebtoken::errors::
     Ok(true)
 }
 
-#[post("/auth/login")]
-async fn login(req: web::Json<InputLogin>, pool: web::Data<Pool>, state: web::Data<AppState>) -> Result<HttpResponse, Error> {
+#[post("/auth/jwt/issue")]
+async fn issue_jwt(req: web::Json<InputLogin>, pool: web::Data<Pool>, state: web::Data<AppState>) -> Result<HttpResponse, Error> {
     let user = web::block(move || users::login(&req.email, &req.password, pool))
         .await?
         .map_err(actix_web::error::ErrorInternalServerError)?;
@@ -72,8 +72,8 @@ async fn login(req: web::Json<InputLogin>, pool: web::Data<Pool>, state: web::Da
     }
 }
 
-#[post("/session/login")]
-async fn session_login(req: web::Json<InputLogin>, session: Session, pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+#[post("/auth/login")]
+async fn login(req: web::Json<InputLogin>, session: Session, pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     let user = web::block(move || users::login(&req.email, &req.password, pool))
         .await?
         .map_err(actix_web::error::ErrorInternalServerError)?;
@@ -86,8 +86,8 @@ async fn session_login(req: web::Json<InputLogin>, session: Session, pool: web::
     }
 }
 
-#[get("/auth/login/check")]
-async fn login_check(session: Session) -> Result<HttpResponse, Error> {
+#[get("/auth/status")]
+async fn status(session: Session) -> Result<HttpResponse, Error> {
     let session_id = session.get::<Uuid>("session_id")?;
     Ok(match session_id {
         Some(_) => HttpResponse::Ok().body("Logged In"),
@@ -95,12 +95,12 @@ async fn login_check(session: Session) -> Result<HttpResponse, Error> {
     })
 }
 
-#[get("/auth/logout")]
+#[post("/auth/logout")]
 async fn logout(session: Session) -> Result<HttpResponse, Error> {
     session.remove("session_id");
     Ok(HttpResponse::Ok().body("Logged out"))
 }
 
 pub fn routes(cfg: &mut ServiceConfig) {
-    cfg.service(services![login, session_login, login_check, logout]);
+    cfg.service(services![issue_jwt, login, status, logout]);
 }
