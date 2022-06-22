@@ -21,3 +21,4 @@ actix-web-httpauth = "0.6.0"
 bigdecimal = {version = "0.1.2", features = ["serde"]}
 diesel-derive-enum = {version = "1.1.2", features = ["postgres"]}
 actix-session = {version = "0.6.2", features = ["cookie-session"]}
+secrecy = "0.8.0"
