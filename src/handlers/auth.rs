@@ -88,9 +88,9 @@ async fn login(req: web::Json<InputLogin>, session: Session, pool: web::Data<Poo
 
 #[get("/auth/status")]
 async fn status(session: Session) -> Result<HttpResponse, Error> {
-    let session_id = session.get::<Uuid>("session_id")?;
-    Ok(match session_id {
-        Some(_) => HttpResponse::Ok().body("Logged In"),
+    let user = session.get::<Uuid>("session_id")?;
+    Ok(match user {
+        Some(u) => HttpResponse::Ok().json(u),
         None => HttpResponse::Unauthorized().body("Not logged in")
     })
 }

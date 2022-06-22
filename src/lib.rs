@@ -1,7 +1,7 @@
+extern crate bcrypt;
 #[macro_use]
 extern crate diesel;
 extern crate dotenv;
-extern crate bcrypt;
 
 use secrecy::Secret;
 
@@ -9,10 +9,11 @@ pub mod schema;
 pub mod models;
 pub mod handlers;
 pub mod db;
+pub mod errors;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub secret: Secret<String>
+    pub secret: Secret<String>,
 }
 
 impl Default for AppState {
