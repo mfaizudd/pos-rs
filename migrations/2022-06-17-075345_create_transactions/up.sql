@@ -7,8 +7,8 @@ CREATE TABLE transactions(
 
 CREATE TABLE transaction_products(
     transaction_id  uuid not null references transactions(id),
-    user_id         uuid not null references users(id),
+    product_id      uuid not null references products(id),
     quantity        integer not null,
     price           numeric(15,2),
-    primary key (transaction_id, user_id)
+    primary key (transaction_id, product_id)
 )

@@ -11,9 +11,9 @@ table! {
 }
 
 table! {
-    transaction_products (transaction_id, user_id) {
+    transaction_products (transaction_id, product_id) {
         transaction_id -> Uuid,
-        user_id -> Uuid,
+        product_id -> Uuid,
         quantity -> Int4,
         price -> Nullable<Numeric>,
     }
@@ -42,8 +42,8 @@ table! {
     }
 }
 
+joinable!(transaction_products -> products (product_id));
 joinable!(transaction_products -> transactions (transaction_id));
-joinable!(transaction_products -> users (user_id));
 joinable!(transactions -> users (user_id));
 
 allow_tables_to_appear_in_same_query!(
