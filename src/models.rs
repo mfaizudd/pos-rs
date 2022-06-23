@@ -1,10 +1,10 @@
-use super::schema::*;
 use bigdecimal::BigDecimal;
-
 use diesel::Identifiable;
 use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+use super::schema::*;
 
 #[derive(Debug, Serialize)]
 pub struct Response<T: Serialize> {
@@ -15,11 +15,11 @@ pub struct Response<T: Serialize> {
 #[derive(DbEnum, Debug, Serialize, Deserialize)]
 pub enum Role {
     Admin,
-    User
+    User,
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Identifiable)]
-#[table_name="users"]
+#[table_name = "users"]
 pub struct User {
     pub id: Uuid,
     pub full_name: String,
@@ -41,18 +41,21 @@ pub struct Product {
     pub updated_at: chrono::NaiveDateTime,
 }
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable, Associations)]
+#[belongs_to(User)]
+#[table_name = "transactions"]
 pub struct Transaction {
     pub id: Uuid,
     pub user_id: Uuid,
     pub crated_at: chrono::NaiveDateTime,
 }
 
-#[derive(Identifiable, Debug, Serialize, Deserialize, Queryable)]
-#[primary_key(transaction_id, user_id)]
+#[derive(Identifiable, Debug, Serialize, Deserialize, Queryable, Associations)]
+#[primary_key(transaction_id, product_id)]
+#[belongs_to(Transaction)]
 pub struct TransactionProduct {
     pub transaction_id: Uuid,
-    pub user_id: Uuid,
+    pub product_id: Uuid,
     pub quantity: i32,
     pub price: f64,
 }
@@ -90,7 +93,7 @@ pub struct InputUser {
     pub full_name: String,
     pub email: String,
     pub password: String,
-    pub role: Option<Role>
+    pub role: Option<Role>,
 }
 
 #[derive(Deserialize)]
