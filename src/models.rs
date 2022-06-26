@@ -50,14 +50,14 @@ pub struct Transaction {
     pub crated_at: chrono::NaiveDateTime,
 }
 
-#[derive(Identifiable, Debug, Serialize, Deserialize, Queryable, Associations)]
+#[derive(Identifiable, Debug, Serialize, Deserialize, Queryable, Associations, Insertable)]
 #[primary_key(transaction_id, product_id)]
 #[belongs_to(Transaction)]
 pub struct TransactionProduct {
     pub transaction_id: Uuid,
     pub product_id: Uuid,
     pub quantity: i32,
-    pub price: f64,
+    pub price: BigDecimal,
 }
 
 #[derive(Insertable, AsChangeset)]
@@ -80,6 +80,13 @@ pub struct NewProduct<'a> {
     pub stock: i32,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: chrono::NaiveDateTime,
+}
+
+#[derive(Insertable)]
+#[table_name = "transactions"]
+pub struct NewTransaction {
+    pub user_id: Uuid,
+    pub created_at: chrono::NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize)]
