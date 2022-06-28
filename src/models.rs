@@ -82,11 +82,11 @@ pub struct NewProduct<'a> {
     pub updated_at: chrono::NaiveDateTime,
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, Deserialize)]
 #[table_name = "transactions"]
 pub struct NewTransaction {
     pub user_id: Uuid,
-    pub created_at: chrono::NaiveDateTime,
+    pub created_at: chrono::NaiveDateTime
 }
 
 #[derive(Serialize, Deserialize)]

@@ -7,7 +7,7 @@ use crate::models::{NewTransaction, Transaction, TransactionProduct};
 use crate::schema;
 use crate::schema::transactions::dsl;
 
-fn new_transaction(uid: Uuid, products: Vec<TransactionProduct>, pool: web::Data<Pool>) -> Result<Transaction, DbError> {
+pub fn new_transaction(uid: Uuid, products: Vec<TransactionProduct>, pool: web::Data<Pool>) -> Result<Transaction, DbError> {
     use schema::transaction_products;
     let conn = pool.get()?;
     let new_transaction = NewTransaction {
