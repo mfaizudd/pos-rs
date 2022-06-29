@@ -1,5 +1,5 @@
 use actix_session::Session;
-use actix_web::{Error, HttpResponse, post, web};
+use actix_web::{Error, HttpResponse, post, services, web};
 use uuid::Uuid;
 use crate::models::TransactionProduct;
 use crate::db;
@@ -18,4 +18,8 @@ pub async fn new_transaction(products: web::Json<Vec<TransactionProduct>>, sessi
         .await?
         .map_err(actix_web::error::ErrorInternalServerError)?;
     Ok(HttpResponse::Ok().json(transaction))
+}
+
+pub fn routes(cfg: &mut web::ServiceConfig) {
+    cfg.service(services![new_transaction]);
 }
