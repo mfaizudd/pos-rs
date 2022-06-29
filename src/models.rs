@@ -86,7 +86,7 @@ pub struct NewProduct<'a> {
 #[table_name = "transactions"]
 pub struct NewTransaction {
     pub user_id: Uuid,
-    pub created_at: chrono::NaiveDateTime
+    pub created_at: chrono::NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -109,4 +109,11 @@ pub struct InputProduct {
     pub barcode: Option<String>,
     pub price: BigDecimal,
     pub stock: i32,
+}
+
+#[derive(Deserialize)]
+pub struct InputTransactionProduct {
+    pub product_id: Uuid,
+    pub quantity: i32,
+    pub price: BigDecimal,
 }
