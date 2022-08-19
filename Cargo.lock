@@ -57,6 +57,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "actix-identity"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1224c9f9593dc27c9077b233ce04adedc1d7febcfc35ee9f53ea3c24df180bec"
+dependencies = [
+ "actix-service",
+ "actix-session 0.7.1",
+ "actix-utils",
+ "actix-web",
+ "anyhow",
+ "futures-core",
+ "serde",
+ "tracing",
+]
+
+[[package]]
 name = "actix-macros"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -136,6 +152,23 @@ dependencies = [
  "serde",
  "serde_json",
  "time 0.3.9",
+ "tracing",
+]
+
+[[package]]
+name = "actix-session"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d324d2a6e670f8746ae64f333c2c0fe856bdf624bcb72fb56e250e62a7e9a85f"
+dependencies = [
+ "actix-service",
+ "actix-utils",
+ "actix-web",
+ "anyhow",
+ "async-trait",
+ "derive_more",
+ "serde",
+ "serde_json",
  "tracing",
 ]
 
@@ -1245,7 +1278,8 @@ dependencies = [
 name = "pos-rs"
 version = "0.1.0"
 dependencies = [
- "actix-session",
+ "actix-identity",
+ "actix-session 0.6.2",
  "actix-web",
  "actix-web-httpauth",
  "bcrypt",
@@ -1256,6 +1290,7 @@ dependencies = [
  "diesel-derive-enum",
  "dotenv",
  "env_logger",
+ "futures-util",
  "jsonwebtoken",
  "r2d2",
  "secrecy",

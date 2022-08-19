@@ -22,3 +22,5 @@ bigdecimal = { version = "0.1.2", features = ["serde"] }
 diesel-derive-enum = { version = "1.1.2", features = ["postgres"] }
 actix-session = { version = "0.6.2", features = ["redis-rs-session"] }
 secrecy = "0.8.0"
+futures-util = "0.3.21"
+actix-identity = "0.5.2"

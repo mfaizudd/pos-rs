@@ -1,10 +1,5 @@
-use actix_session::Session;
-use actix_web::{
-    dev::ServiceRequest,
-    Error, get, HttpResponse,
-    post,
-    services, web::{self, ServiceConfig},
-};
+use actix_identity::Identity;
+use actix_web::{dev::ServiceRequest, Error, get, HttpMessage, HttpRequest, HttpResponse, post, services, web::{self, ServiceConfig}};
 use actix_web_httpauth::extractors::{
     AuthenticationError,
     bearer::{BearerAuth, Config},
@@ -12,7 +7,6 @@ use actix_web_httpauth::extractors::{
 use jsonwebtoken::{Algorithm, decode, DecodingKey, encode, EncodingKey, Header, Validation};
 use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{AppState, db::{Pool, users}, models::InputLogin};
 
@@ -76,13 +70,14 @@ async fn issue_jwt(req: web::Json<InputLogin>, pool: web::Data<Pool>, state: web
 }
 
 #[post("/auth/login")]
-async fn login(req: web::Json<InputLogin>, session: Session, pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+async fn login(req: web::Json<InputLogin>, pool: web::Data<Pool>, request: HttpRequest) -> Result<HttpResponse, Error> {
     let user = web::block(move || users::login(&req.email, &req.password, pool))
         .await?
         .map_err(actix_web::error::ErrorInternalServerError)?;
     match user {
         Some(u) => {
-            session.insert("session_id", u.id)?;
+            Identity::login(&request.extensions(), "User1".into())
+                .map_err(actix_web::error::ErrorInternalServerError)?;
             Ok(HttpResponse::Ok().body("Logged In"))
         }
         None => Ok(HttpResponse::Unauthorized().json("Username/Password not found")),
@@ -90,17 +85,16 @@ async fn login(req: web::Json<InputLogin>, session: Session, pool: web::Data<Poo
 }
 
 #[get("/auth/status")]
-async fn status(session: Session) -> Result<HttpResponse, Error> {
-    let user = session.get::<Uuid>("session_id")?;
+async fn status(user: Option<Identity>) -> Result<HttpResponse, Error> {
     Ok(match user {
-        Some(u) => HttpResponse::Ok().json(u),
+        Some(u) => HttpResponse::Ok().json(u.id().unwrap()),
         None => HttpResponse::Unauthorized().body("Not logged in")
     })
 }
 
 #[post("/auth/logout")]
-async fn logout(session: Session) -> Result<HttpResponse, Error> {
-    session.remove("session_id");
+async fn logout(user: Identity) -> Result<HttpResponse, Error> {
+    user.logout();
     Ok(HttpResponse::Ok().body("Logged out"))
 }
 
