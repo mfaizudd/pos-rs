@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::{
     db::DbPool,
     errors::ServiceError,
-    models::transaction::{InputTransactionProduct, Transaction, TransactionProduct},
+    models::transaction::{InputTransactionProduct, Transaction, TransactionResponse, TransactionProduct},
 };
 
 pub async fn new_transaction(
@@ -24,7 +24,7 @@ pub async fn new_transaction(
     .await?;
 
     for product in products.iter() {
-        let _transaction_product = sqlx::query_as!(
+        sqlx::query_as!(
             TransactionProduct,
             "insert into transaction_products(
                 transaction_id,
@@ -34,14 +34,25 @@ pub async fn new_transaction(
             )
             values(
                 $1, $2, $3, $4
-            ) returning *",
+            )",
             transaction.id,
             product.product_id,
             product.price,
             product.quantity
         )
-        .fetch_one(&mut pool)
+        .execute(&mut pool)
         .await?;
     }
     Ok(transaction)
+}
+
+pub async fn get(uid: Uuid, pool: web::Data<DbPool>) -> Result<TransactionResponse, ServiceError> {
+    let mut pool = pool.acquire().await?;
+    let transaction = sqlx::query_as!(Transaction, "select * from transactions where id = $1", uid)
+        .fetch_one(&mut pool)
+        .await?;
+    let products = sqlx::query_as!(TransactionProduct, "select * from transaction_products where transaction_id = $1",uid)
+        .fetch_all(&mut pool)
+        .await?;
+    Ok(TransactionResponse::new(transaction, products))
 }
