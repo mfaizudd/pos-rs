@@ -1,6 +1,6 @@
 use std::pin::Pin;
 
-use actix_web::{http::header, Error, FromRequest, HttpRequest};
+use actix_web::{http::header, Error, FromRequest, HttpRequest, web};
 use futures_util::Future;
 use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
@@ -32,7 +32,7 @@ impl FromRequest for Claims {
         Box::pin(async move {
             let req_headers = req.headers();
             let state = req
-                .app_data::<AppState>()
+                .app_data::<web::Data<AppState>>()
                 .expect("App state not configured properly");
             let bearer_token = req_headers
                 .get(header::AUTHORIZATION)
