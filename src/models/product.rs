@@ -13,15 +13,6 @@ pub struct Product {
     pub updated_at: chrono::NaiveDateTime,
 }
 
-pub struct NewProduct<'a> {
-    pub name: &'a str,
-    pub barcode: Option<&'a str>,
-    pub price: BigDecimal,
-    pub stock: i32,
-    pub created_at: chrono::NaiveDateTime,
-    pub updated_at: chrono::NaiveDateTime,
-}
-
 #[derive(Deserialize)]
 pub struct InputProduct {
     pub name: String,

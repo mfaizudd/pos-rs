@@ -19,15 +19,6 @@ pub enum Role {
     User,
 }
 
-pub struct NewUser<'a> {
-    pub full_name: &'a str,
-    pub email: &'a str,
-    pub password: &'a str,
-    pub role: Option<Role>,
-    pub created_at: chrono::NaiveDateTime,
-    pub updated_at: chrono::NaiveDateTime,
-}
-
 #[derive(Deserialize)]
 pub struct InputUser {
     pub full_name: String,
