@@ -1,100 +1,196 @@
-use super::{DbError, Pool};
-use crate::models::*;
-use crate::schema::users::dsl;
+use super::DbPool;
+use crate::{
+    errors::ServiceError,
+    models::user::{Role, User},
+};
 use actix_web::web;
 use bcrypt::{hash, verify, DEFAULT_COST};
-use diesel::prelude::*;
 use uuid::Uuid;
 
-pub fn get_all(pool: web::Data<Pool>) -> Result<Vec<User>, DbError> {
-    use dsl::*;
-    let conn = pool.get()?;
-    let items = users.load::<User>(&conn)?;
-    Ok(items)
-}
-
-pub fn find(uid: Uuid, pool: web::Data<Pool>) -> Result<Option<User>, DbError> {
-    use dsl::*;
-    let conn = pool.get()?;
-    let user = users
-        .filter(id.eq_all(uid))
-        .first::<User>(&conn)
-        .optional()?;
-
+pub async fn get_all(pool: web::Data<DbPool>) -> Result<Vec<User>, ServiceError> {
+    let mut pool = pool.acquire().await?;
+    let user = sqlx::query_as!(
+        User,
+        r#"
+    select 
+        id, 
+        full_name, 
+        email, 
+        password, 
+        role as "role: _", 
+        created_at, 
+        updated_at 
+    from users"#
+    )
+    .fetch_all(&mut pool)
+    .await?;
     Ok(user)
 }
 
-pub fn add(
+pub async fn find(uid: Uuid, pool: web::Data<DbPool>) -> Result<Option<User>, ServiceError> {
+    let mut pool = pool.acquire().await?;
+    let user = sqlx::query_as!(
+        User,
+        r#"
+    select 
+        id, 
+        full_name, 
+        email, 
+        password, 
+        role as "role: _", 
+        created_at, 
+        updated_at 
+    from users
+    where id = $1"#,
+        uid
+    )
+    .fetch_one(&mut pool)
+    .await
+    .ok();
+    Ok(user)
+}
+
+pub async fn find_by_email(email: String, pool: web::Data<DbPool>) -> Result<User, ServiceError> {
+    let mut pool = pool.acquire().await?;
+    let user = sqlx::query_as!(
+        User,
+        r#"
+    select 
+        id, 
+        full_name, 
+        email, 
+        password, 
+        role as "role: _", 
+        created_at, 
+        updated_at 
+    from users
+    where email = $1"#,
+        email
+    )
+    .fetch_one(&mut pool)
+    .await?;
+    Ok(user)
+}
+
+pub async fn add(
     full_name: &str,
     email: &str,
     password: &str,
     role: Option<Role>,
-    pool: web::Data<Pool>,
-) -> Result<User, DbError> {
-    let conn = pool.get()?;
+    pool: web::Data<DbPool>,
+) -> Result<User, ServiceError> {
+    let mut pool = pool.acquire().await?;
     let password = &hash(password, DEFAULT_COST)?;
-    let new_user = NewUser {
+    let now = chrono::Local::now().naive_utc();
+    let user = sqlx::query_as!(
+        User,
+        r#"
+    insert into users(
+        full_name, 
+        email, 
+        password, 
+        role, 
+        created_at, 
+        updated_at 
+    )
+    values(
+        $1, $2, $3, $4, $5, $6
+    )
+    returning 
+        id,
+        full_name, 
+        email, 
+        password, 
+        role as "role: _",
+        created_at, 
+        updated_at
+    "#,
         full_name,
         email,
         password,
-        role,
-        created_at: chrono::Local::now().naive_utc(),
-        updated_at: chrono::Local::now().naive_utc(),
-    };
-    let user: User = diesel::insert_into(dsl::users)
-        .values(&new_user)
-        .get_result(&conn)?;
+        role as _,
+        now,
+        now
+    )
+    .fetch_one(&mut pool)
+    .await?;
     Ok(user)
 }
 
-pub fn update(
+pub async fn update(
     uid: Uuid,
     full_name: &str,
     email: &str,
     password: &str,
     role: Option<Role>,
-    pool: web::Data<Pool>,
-) -> Result<Option<User>, DbError> {
-    let conn = pool.get()?;
-    let user: Option<User> = dsl::users.find(uid).first::<User>(&conn).optional()?;
-    let user = match user {
-        Some(u) => u,
-        None => return Ok(None),
-    };
+    pool: web::Data<DbPool>,
+) -> Result<User, ServiceError> {
+    let mut pool = pool.acquire().await?;
     let password = &hash(password, DEFAULT_COST)?;
-    let updated_user = NewUser {
+    let now = chrono::Local::now().naive_utc();
+    println!("{}", uid);
+    let user = sqlx::query_as!(
+        User,
+        r#"
+    update users set
+        full_name = $1, 
+        email = $2, 
+        password = $3, 
+        role = $4, 
+        updated_at = $5
+    where id = $6
+    returning 
+        id,
+        full_name, 
+        email, 
+        password, 
+        role as "role: _",
+        created_at,
+        updated_at
+    "#,
         full_name,
         email,
         password,
-        role,
-        created_at: user.created_at,
-        updated_at: chrono::Local::now().naive_utc(),
-    };
-    let user = dsl::users.find(uid);
-    let user = diesel::update(user)
-        .set(&updated_user)
-        .get_result::<User>(&conn)
-        .optional()?;
+        role as _,
+        now,
+        uid
+    )
+    .fetch_one(&mut pool)
+    .await?;
     Ok(user)
 }
 
-pub fn delete(uid: Uuid, pool: web::Data<Pool>) -> Result<String, DbError> {
-    let conn = pool.get()?;
-    let user = dsl::users.find(uid);
-    let num_deleted = diesel::delete(user).execute(&conn)?;
-    let response = format!("Deleted {} user(s)", num_deleted);
-    Ok(response)
+pub async fn delete(uid: Uuid, pool: web::Data<DbPool>) -> Result<String, ServiceError> {
+    let mut pool = pool.acquire().await?;
+    let result = sqlx::query_as!(User, r#"delete from users where id = $1"#, uid)
+        .execute(&mut pool)
+        .await?;
+    Ok(format!("User deleted: {}", result.rows_affected()))
 }
 
-pub fn login(email: &str, password: &str, pool: web::Data<Pool>) -> Result<Option<User>, DbError> {
-    let conn = pool.get()?;
-    let user: Option<User> = dsl::users
-        .filter(dsl::email.eq_all(email))
-        .first::<User>(&conn)
-        .optional()?;
-    let user = match user {
-        Some(u) => verify(password, &u.password)?.then(|| u),
-        None => None,
-    };
-    Ok(user)
+pub async fn login(
+    email: &str,
+    password: &str,
+    pool: web::Data<DbPool>,
+) -> Result<Option<User>, ServiceError> {
+    let mut pool = pool.acquire().await?;
+    let user = sqlx::query_as!(
+        User,
+        r#"
+    select 
+        id, 
+        full_name, 
+        email, 
+        password, 
+        role as "role: _", 
+        created_at, 
+        updated_at 
+    from users
+    where email = $1"#,
+        email
+    )
+    .fetch_one(&mut pool)
+    .await?;
+    let success = verify(password, &user.password)?;
+    Ok(if success { Some(user) } else { None })
 }

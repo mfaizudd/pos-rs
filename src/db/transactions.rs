@@ -1,30 +1,47 @@
 use actix_web::web;
-use diesel::RunQueryDsl;
 use uuid::Uuid;
 
-use crate::db::{DbError, Pool};
-use crate::models::{InputTransactionProduct, NewTransaction, Transaction, TransactionProduct};
-use crate::schema;
-use crate::schema::transactions::dsl;
+use crate::{
+    db::DbPool,
+    errors::ServiceError,
+    models::transaction::{InputTransactionProduct, Transaction, TransactionProduct},
+};
 
-pub fn new_transaction(uid: Uuid, products: Vec<InputTransactionProduct>, pool: web::Data<Pool>) -> Result<Transaction, DbError> {
-    use schema::transaction_products;
-    let conn = pool.get()?;
-    let new_transaction = NewTransaction {
-        user_id: uid,
-        created_at: chrono::Local::now().naive_utc(),
-    };
-    let transaction = diesel::insert_into(dsl::transactions)
-        .values(new_transaction)
-        .get_result::<Transaction>(&conn)?;
-    let products: Vec<TransactionProduct> = products.iter().map(|p| TransactionProduct {
-        transaction_id: transaction.id,
-        product_id: p.product_id,
-        price: p.price.clone(),
-        quantity: p.quantity,
-    }).collect();
-    diesel::insert_into(transaction_products::table)
-        .values(products)
-        .execute(&conn)?;
+pub async fn new_transaction(
+    uid: Uuid,
+    products: Vec<InputTransactionProduct>,
+    pool: web::Data<DbPool>,
+) -> Result<Transaction, ServiceError> {
+    let mut pool = pool.begin().await?;
+    let now = chrono::Local::now().naive_utc();
+    let transaction = sqlx::query_as!(
+        Transaction,
+        "insert into transactions(user_id, created_at) values($1, $2) returning *",
+        uid,
+        now
+    )
+    .fetch_one(&mut pool)
+    .await?;
+
+    for product in products.iter() {
+        let _transaction_product = sqlx::query_as!(
+            TransactionProduct,
+            "insert into transaction_products(
+                transaction_id,
+                product_id,
+                price,
+                quantity
+            )
+            values(
+                $1, $2, $3, $4
+            ) returning *",
+            transaction.id,
+            product.product_id,
+            product.price,
+            product.quantity
+        )
+        .fetch_one(&mut pool)
+        .await?;
+    }
     Ok(transaction)
 }

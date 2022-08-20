@@ -1,22 +1,21 @@
-use actix_session::Session;
-use actix_web::{Error, HttpResponse, post, services, web};
-use uuid::Uuid;
-use crate::models::InputTransactionProduct;
+use crate::models::auth::Claims;
+use crate::models::transaction::InputTransactionProduct;
 use crate::db;
-use crate::db::Pool;
+use crate::db::DbPool;
+use actix_web::{post, services, web, Error, HttpResponse};
 
 #[post("/transactions")]
-pub async fn new_transaction(products: web::Json<Vec<InputTransactionProduct>>, session: Session, pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    let uid = match session.get::<Uuid>("session_id")? {
-        Some(uid) => uid,
-        None => return Ok(HttpResponse::Unauthorized().body("Not logged in"))
-    };
+pub async fn new_transaction(
+    claims: web::Data<Claims>,
+    products: web::Json<Vec<InputTransactionProduct>>,
+    pool: web::Data<DbPool>,
+) -> Result<HttpResponse, Error> {
+    let claims = claims.into_inner();
+    let user = db::users::find_by_email(claims.sub.clone(), pool.clone())
+        .await?;
     let products = products.into_inner();
-    let transaction = web::block(move || {
-        db::transactions::new_transaction(uid, products, pool)
-    })
-        .await?
-        .map_err(actix_web::error::ErrorInternalServerError)?;
+    let transaction = db::transactions::new_transaction(user.id, products, pool.clone())
+        .await?;
     Ok(HttpResponse::Ok().json(transaction))
 }
 

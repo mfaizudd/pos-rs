@@ -1,23 +1,26 @@
-use crate::{db::*, handlers::auth, models::InputUser};
 use actix_web::{delete, get, post, put, services, web, Error, HttpResponse};
-use actix_web_httpauth::middleware::HttpAuthentication;
 
+use crate::{
+    db::{self, DbPool},
+    models::user::InputUser,
+};
 
-#[get("/users", wrap = "HttpAuthentication::bearer(auth::validator)")]
-async fn get_users(db: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    let users = web::block(move || users::get_all(db))
-        .await?
-        .map_err(actix_web::error::ErrorInternalServerError)?;
+#[get("/users")]
+async fn get_users(db: web::Data<DbPool>) -> Result<HttpResponse, Error> {
+    let users = db::users::get_all(db)
+        .await?;
 
     Ok(HttpResponse::Ok().json(users))
 }
 
-#[get("/users/{id}", wrap = "HttpAuthentication::bearer(auth::validator)")]
-async fn get_user(path: web::Path<uuid::Uuid>, db: web::Data<Pool>) -> Result<HttpResponse, Error> {
+#[get("/users/{id}")]
+async fn get_user(
+    path: web::Path<uuid::Uuid>,
+    db: web::Data<DbPool>,
+) -> Result<HttpResponse, Error> {
     let uid = path.into_inner();
-    let user = web::block(move || users::find(uid, db))
-        .await?
-        .map_err(actix_web::error::ErrorInternalServerError)?;
+    let user = db::users::find(uid, db)
+        .await?;
 
     Ok(match user {
         Some(u) => HttpResponse::Ok().json(u),
@@ -28,54 +31,47 @@ async fn get_user(path: web::Path<uuid::Uuid>, db: web::Data<Pool>) -> Result<Ht
 #[post("/users")]
 async fn create_user(
     req: web::Json<InputUser>,
-    db: web::Data<Pool>,
+    db: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
     let InputUser {
         full_name,
         email,
         password,
-        role
+        role,
     } = req.into_inner();
-    let user = web::block(move || users::add(&full_name, &email, &password, role, db))
-        .await?
-        .map_err(actix_web::error::ErrorInternalServerError)?;
+    let user = db::users::add(&full_name, &email, &password, role, db)
+        .await?;
 
     Ok(HttpResponse::Ok().json(user))
 }
 
-#[put("/users/{id}", wrap = "HttpAuthentication::bearer(auth::validator)")]
+#[put("/users/{id}")]
 async fn update_user(
     path: web::Path<uuid::Uuid>,
     req: web::Json<InputUser>,
-    db: web::Data<Pool>,
+    db: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
     let uid = path.into_inner();
     let InputUser {
-        full_name, 
+        full_name,
         email,
         password,
-        role
+        role,
     } = req.into_inner();
-    let user =
-        web::block(move || users::update(uid, &full_name, &email, &password, role, db))
-            .await?
-            .map_err(actix_web::error::ErrorInternalServerError)?;
+    let user = db::users::update(uid, &full_name, &email, &password, role, db)
+        .await?;
 
-    Ok(match user {
-        Some(u) => HttpResponse::Ok().json(u),
-        None => HttpResponse::NotFound().body("User not found"),
-    })
+    Ok(HttpResponse::Ok().json(user))
 }
 
-#[delete("/users/{id}", wrap = "HttpAuthentication::bearer(auth::validator)")]
+#[delete("/users/{id}")]
 async fn delete_user(
     path: web::Path<uuid::Uuid>,
-    pool: web::Data<Pool>,
+    pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
     let uid = path.into_inner();
-    let result = web::block(move || users::delete(uid, pool))
-        .await?
-        .map_err(actix_web::error::ErrorInternalServerError)?;
+    let result = db::users::delete(uid, pool)
+        .await?;
 
     Ok(HttpResponse::Ok().json(result))
 }
