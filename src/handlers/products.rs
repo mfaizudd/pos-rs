@@ -1,8 +1,10 @@
 use actix_web::web::ServiceConfig;
 use actix_web::{delete, get, post, put, services, web, Error, HttpResponse};
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::db::{self, DbPool};
+use crate::errors::ServiceError;
 use crate::models::product::InputProduct;
 
 #[get("/products")]
@@ -27,7 +29,8 @@ async fn get_product(
 async fn create_product(
     req: web::Json<InputProduct>,
     pool: web::Data<DbPool>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ServiceError> {
+    req.validate()?;
     let InputProduct {
         name,
         barcode,

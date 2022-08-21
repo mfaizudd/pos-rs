@@ -3,6 +3,7 @@ use std::error::Error;
 use actix_web::{error::ResponseError, HttpResponse};
 use bcrypt::BcryptError;
 use derive_more::Display;
+use validator::ValidationErrors;
 
 #[derive(Debug, Display)]
 pub enum ServiceError {
@@ -11,8 +12,8 @@ pub enum ServiceError {
 
     #[display(fmt = "Bad Request: {}", _0)]
     BadRequest(String),
-
     DatabaseError(sqlx::Error),
+    ValidationError(ValidationErrors)
 }
 
 impl ResponseError for ServiceError {
@@ -23,6 +24,7 @@ impl ResponseError for ServiceError {
             }
             ServiceError::BadRequest(msg) => HttpResponse::BadRequest().json(msg),
             ServiceError::DatabaseError(err) => map_database_error(err),
+            ServiceError::ValidationError(err) => HttpResponse::BadRequest().json(err)
         }
     }
 }
@@ -43,5 +45,11 @@ impl From<BcryptError> for ServiceError {
 impl From<sqlx::Error> for ServiceError {
     fn from(err: sqlx::Error) -> Self {
         ServiceError::DatabaseError(err)
+    }
+}
+
+impl From<ValidationErrors> for ServiceError {
+    fn from(err: ValidationErrors) -> Self {
+        ServiceError::ValidationError(err)
     }
 }
