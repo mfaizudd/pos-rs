@@ -4,15 +4,13 @@ use actix_web::{http::header, Error, FromRequest, HttpRequest, web};
 use futures_util::Future;
 use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
-use validator::Validate;
 
 use crate::{jwt::validate_token, AppState};
 
 use super::user::Role;
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize)]
 pub struct InputLogin {
-    #[validate(email)]
     pub email: String,
     pub password: String,
 }

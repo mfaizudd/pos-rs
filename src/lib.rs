@@ -5,8 +5,9 @@ use secrecy::Secret;
 pub mod db;
 pub mod errors;
 pub mod handlers;
-pub mod models;
 pub mod jwt;
+pub mod models;
+pub mod validation;
 
 #[derive(Clone)]
 pub struct AppState {
