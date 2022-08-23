@@ -1,7 +1,8 @@
 use std::{error::Error, fmt::Display};
 
 pub trait Validate {
-    fn validate(&self) -> Result<(), ValidationError>;
+    type OkResult;
+    fn validate(&self) -> Result<Self::OkResult, ValidationError>;
 }
 
 #[derive(Debug)]
@@ -41,6 +42,7 @@ mod tests {
     }
 
     impl Validate for MockStruct {
+        type OkResult = ();
         fn validate(&self) -> Result<(), super::ValidationError> {
             let mut err = ValidationError::new();
             if self.size >= 1 {
