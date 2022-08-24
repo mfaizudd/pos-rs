@@ -20,16 +20,9 @@ impl Validate for InputLogin {
 
     fn validate(&self) -> Result<Self::OkResult, crate::validation::ValidationError> {
         let mut err = ValidationError::new();
-        if self.email.len() <= 0 {
-            err.add_message("Email is required");
-        }
-        if self.password.len() <= 0 {
-            err.add_message("Password is required");
-        }
-        if err.len() > 0 {
-            return Err(err);
-        }
-        Ok(())
+        err.push("Email is required", || self.email.len() <= 0);
+        err.push("Password is required", || self.password.len() <= 0);
+        err.to_result(())
     }
 }
 
