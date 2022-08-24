@@ -5,7 +5,7 @@ use futures_util::Future;
 use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
 
-use crate::{jwt::validate_token, AppState};
+use crate::{jwt::validate_token, AppState, validation::{Validate, ValidationError}};
 
 use super::user::Role;
 
@@ -13,6 +13,24 @@ use super::user::Role;
 pub struct InputLogin {
     pub email: String,
     pub password: String,
+}
+
+impl Validate for InputLogin {
+    type OkResult = ();
+
+    fn validate(&self) -> Result<Self::OkResult, crate::validation::ValidationError> {
+        let mut err = ValidationError::new();
+        if self.email.len() <= 0 {
+            err.add_message("Email is required");
+        }
+        if self.password.len() <= 0 {
+            err.add_message("Password is required");
+        }
+        if err.len() > 0 {
+            return Err(err);
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

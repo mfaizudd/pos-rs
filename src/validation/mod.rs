@@ -15,12 +15,28 @@ impl ValidationError {
         ValidationError { errors: vec![] }
     }
 
-    pub fn push(&mut self, err: &str) {
+    pub fn push<F>(&mut self, err: &str, f: F)
+    where
+        F: FnOnce() -> bool 
+    {
+        if f() {
+            self.add_message(err);
+        }
+    }
+
+    pub fn add_message(&mut self, err: &str) {
         self.errors.push(String::from(err));
     }
 
     pub fn len(&self) -> usize {
         self.errors.len()
+    }
+
+    pub fn get_result<T>(self, result: T) -> Result<T, Self> {
+        if self.len() > 0 {
+            return Err(self)
+        }
+        Ok(result)
     }
 }
 
@@ -37,22 +53,22 @@ impl Error for ValidationError {}
 mod tests {
     use super::{Validate, ValidationError};
 
-    struct MockStruct {
+    struct AddMessageStruct {
         size: usize
     }
 
-    impl Validate for MockStruct {
+    impl Validate for AddMessageStruct {
         type OkResult = ();
         fn validate(&self) -> Result<(), super::ValidationError> {
             let mut err = ValidationError::new();
             if self.size >= 1 {
-                err.push("1 error");
+                err.add_message("1 error");
             }
             if self.size >= 2 {
-                err.push("2 error");
+                err.add_message("2 error");
             }
             if self.size >= 3 {
-                err.push("3 error");
+                err.add_message("3 error");
             }
             if err.len() > 0 {
                 return Err(err)
@@ -61,9 +77,24 @@ mod tests {
         }
     }
 
+    struct PushStruct {
+        size: usize
+    }
+
+    impl Validate for PushStruct {
+        type OkResult = ();
+        fn validate(&self) -> Result<(), super::ValidationError> {
+            let mut err = ValidationError::new();
+            err.push("1 error", || self.size >= 1);
+            err.push("2 error", || self.size >= 2);
+            err.push("3 error", || self.size >= 3);
+            err.get_result(())
+        }
+    }
+
     #[test]
     fn return_correct_number_of_errors() {
-        let mock = MockStruct { size: 2 };
+        let mock = AddMessageStruct { size: 2 };
         match mock.validate() {
             Ok(_) => panic!("Validator doesn't return any error"),
             Err(err) => assert_eq!(err.len(), 2),
@@ -72,7 +103,7 @@ mod tests {
 
     #[test]
     fn return_ok_on_success() {
-        let mock = MockStruct { size: 0 };
+        let mock = AddMessageStruct { size: 0 };
         assert!(mock.validate().is_ok(), "Validation result wasn't ok")
     }
 }
