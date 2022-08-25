@@ -4,26 +4,28 @@ use uuid::Uuid;
 use crate::{
     db::DbPool,
     errors::ServiceError,
-    models::transaction::{InputTransactionProduct, Transaction, TransactionResponse, TransactionProduct},
+    models::transaction::{InputTransaction, Transaction, TransactionProduct, TransactionResponse},
 };
 
 pub async fn new_transaction(
     uid: Uuid,
-    products: Vec<InputTransactionProduct>,
+    input: InputTransaction,
     pool: web::Data<DbPool>,
 ) -> Result<Transaction, ServiceError> {
     let mut pool = pool.begin().await?;
     let now = chrono::Local::now().naive_utc();
     let transaction = sqlx::query_as!(
         Transaction,
-        "insert into transactions(user_id, created_at) values($1, $2) returning *",
+        "insert into transactions(notes, total_paid, user_id, created_at) values($1, $2, $3, $4) returning *",
+        input.notes,
+        input.total_paid,
         uid,
         now
     )
     .fetch_one(&mut pool)
     .await?;
 
-    for product in products.iter() {
+    for product in input.products.iter() {
         sqlx::query_as!(
             TransactionProduct,
             "insert into transaction_products(
@@ -51,8 +53,12 @@ pub async fn get(uid: Uuid, pool: web::Data<DbPool>) -> Result<TransactionRespon
     let transaction = sqlx::query_as!(Transaction, "select * from transactions where id = $1", uid)
         .fetch_one(&mut pool)
         .await?;
-    let products = sqlx::query_as!(TransactionProduct, "select * from transaction_products where transaction_id = $1",uid)
-        .fetch_all(&mut pool)
-        .await?;
+    let products = sqlx::query_as!(
+        TransactionProduct,
+        "select * from transaction_products where transaction_id = $1",
+        uid
+    )
+    .fetch_all(&mut pool)
+    .await?;
     Ok(TransactionResponse::new(transaction, products))
 }
