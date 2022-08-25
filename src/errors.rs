@@ -4,6 +4,8 @@ use actix_web::{error::ResponseError, HttpResponse};
 use bcrypt::BcryptError;
 use derive_more::Display;
 
+use crate::validation::ValidationError;
+
 #[derive(Debug, Display)]
 pub enum ServiceError {
     #[display(fmt = "Internal Server Error")]
@@ -12,6 +14,7 @@ pub enum ServiceError {
     #[display(fmt = "Bad Request: {}", _0)]
     BadRequest(String),
     DatabaseError(sqlx::Error),
+    ValidationError(ValidationError),
 }
 
 impl ResponseError for ServiceError {
@@ -22,6 +25,7 @@ impl ResponseError for ServiceError {
             }
             ServiceError::BadRequest(msg) => HttpResponse::BadRequest().json(msg),
             ServiceError::DatabaseError(err) => map_database_error(err),
+            ServiceError::ValidationError(err) => HttpResponse::BadRequest().json(err),
         }
     }
 }
@@ -42,5 +46,11 @@ impl From<BcryptError> for ServiceError {
 impl From<sqlx::Error> for ServiceError {
     fn from(err: sqlx::Error) -> Self {
         ServiceError::DatabaseError(err)
+    }
+}
+
+impl From<ValidationError> for ServiceError {
+    fn from(err: ValidationError) -> Self {
+        ServiceError::ValidationError(err)
     }
 }

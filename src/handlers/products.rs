@@ -5,6 +5,7 @@ use uuid::Uuid;
 use crate::db::{self, DbPool};
 use crate::errors::ServiceError;
 use crate::models::product::InputProduct;
+use crate::validation::Validate;
 
 #[get("/products")]
 async fn get_products(pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
@@ -29,12 +30,14 @@ async fn create_product(
     req: web::Json<InputProduct>,
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, ServiceError> {
+    let input_product = req.into_inner();
+    input_product.validate()?;
     let InputProduct {
         name,
         barcode,
         price,
         stock,
-    } = req.into_inner();
+    } = input_product;
     let product = db::products::add(&name, barcode, price, stock, pool)
         .await?;
     Ok(HttpResponse::Ok().json(product))

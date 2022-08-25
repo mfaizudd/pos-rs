@@ -1,13 +1,13 @@
 use std::{error::Error, fmt::Display};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub trait Validate {
     type OkResult;
     fn validate(&self) -> Result<Self::OkResult, ValidationError>;
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ValidationError {
     errors: Vec<String>,
 }
@@ -28,6 +28,10 @@ impl ValidationError {
 
     pub fn add_message(&mut self, message: &str) {
         self.errors.push(String::from(message));
+    }
+
+    pub fn get_message(&self, index: usize) -> &str {
+        &self.errors[index]
     }
 
     pub fn len(&self) -> usize {
@@ -118,10 +122,13 @@ mod tests {
         let mock = AddMessageStruct { size: 0 };
         assert!(mock.validate().is_ok(), "Validation result wasn't ok")
     }
-    
+
     #[test]
     fn push_return_ok_on_success() {
         let push_mock = PushStruct { size: 0 };
-        assert!(push_mock.validate().is_ok(), "Validation result using push wasn't ok")
+        assert!(
+            push_mock.validate().is_ok(),
+            "Validation result using push wasn't ok"
+        )
     }
 }
