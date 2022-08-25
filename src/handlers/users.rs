@@ -2,13 +2,14 @@ use actix_web::{delete, get, post, put, services, web, Error, HttpResponse};
 
 use crate::{
     db::{self, DbPool},
+    errors::ServiceError,
     models::user::InputUser,
+    validation::Validate,
 };
 
 #[get("/users")]
 async fn get_users(db: web::Data<DbPool>) -> Result<HttpResponse, Error> {
-    let users = db::users::get_all(db)
-        .await?;
+    let users = db::users::get_all(db).await?;
 
     Ok(HttpResponse::Ok().json(users))
 }
@@ -19,8 +20,7 @@ async fn get_user(
     db: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
     let uid = path.into_inner();
-    let user = db::users::find(uid, db)
-        .await?;
+    let user = db::users::find(uid, db).await?;
 
     Ok(match user {
         Some(u) => HttpResponse::Ok().json(u),
@@ -32,15 +32,16 @@ async fn get_user(
 async fn create_user(
     req: web::Json<InputUser>,
     db: web::Data<DbPool>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ServiceError> {
+    let input_user = req.into_inner();
+    input_user.validate()?;
     let InputUser {
         full_name,
         email,
         password,
         role,
-    } = req.into_inner();
-    let user = db::users::add(&full_name, &email, &password, role, db)
-        .await?;
+    } = input_user;
+    let user = db::users::add(&full_name, &email, &password, role, db).await?;
 
     Ok(HttpResponse::Ok().json(user))
 }
@@ -50,16 +51,17 @@ async fn update_user(
     path: web::Path<uuid::Uuid>,
     req: web::Json<InputUser>,
     db: web::Data<DbPool>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ServiceError> {
     let uid = path.into_inner();
+    let input_user = req.into_inner();
+    input_user.validate()?;
     let InputUser {
         full_name,
         email,
         password,
         role,
-    } = req.into_inner();
-    let user = db::users::update(uid, &full_name, &email, &password, role, db)
-        .await?;
+    } = input_user;
+    let user = db::users::update(uid, &full_name, &email, &password, role, db).await?;
 
     Ok(HttpResponse::Ok().json(user))
 }
@@ -70,8 +72,7 @@ async fn delete_user(
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
     let uid = path.into_inner();
-    let result = db::users::delete(uid, pool)
-        .await?;
+    let result = db::users::delete(uid, pool).await?;
 
     Ok(HttpResponse::Ok().json(result))
 }

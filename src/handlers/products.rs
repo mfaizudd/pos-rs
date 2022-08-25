@@ -9,8 +9,7 @@ use crate::validation::Validate;
 
 #[get("/products")]
 async fn get_products(pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
-    let products = db::products::get_all(pool)
-        .await?;
+    let products = db::products::get_all(pool).await?;
     Ok(HttpResponse::Ok().json(products))
 }
 
@@ -20,8 +19,7 @@ async fn get_product(
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
     let pid = path.into_inner();
-    let product = db::products::get(pid, pool)
-        .await?;
+    let product = db::products::get(pid, pool).await?;
     Ok(HttpResponse::Ok().json(product))
 }
 
@@ -38,8 +36,7 @@ async fn create_product(
         price,
         stock,
     } = input_product;
-    let product = db::products::add(&name, barcode, price, stock, pool)
-        .await?;
+    let product = db::products::add(&name, barcode, price, stock, pool).await?;
     Ok(HttpResponse::Ok().json(product))
 }
 
@@ -48,16 +45,17 @@ async fn update_product(
     path: web::Path<Uuid>,
     req: web::Json<InputProduct>,
     pool: web::Data<DbPool>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ServiceError> {
     let pid = path.into_inner();
+    let input_product = req.into_inner();
+    input_product.validate()?;
     let InputProduct {
         name,
         barcode,
         price,
         stock,
-    } = req.into_inner();
-    let product = db::products::update(pid, &name, barcode, price, stock, pool)
-        .await?;
+    } = input_product;
+    let product = db::products::update(pid, &name, barcode, price, stock, pool).await?;
 
     Ok(HttpResponse::Ok().json(product))
 }
@@ -68,8 +66,7 @@ async fn delete_product(
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
     let pid = path.into_inner();
-    let response = db::products::delete(pid, pool)
-        .await?;
+    let response = db::products::delete(pid, pool).await?;
 
     Ok(HttpResponse::Ok().json(response))
 }
