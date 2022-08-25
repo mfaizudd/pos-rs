@@ -2,6 +2,8 @@ use std::{error::Error, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 
+pub mod validators;
+
 pub trait Validate {
     type OkResult;
     fn validate(&self) -> Result<Self::OkResult, ValidationError>;
@@ -21,7 +23,7 @@ impl ValidationError {
     where
         F: FnOnce() -> bool,
     {
-        if f() {
+        if !f() {
             self.add_message(message);
         }
     }
@@ -92,9 +94,9 @@ mod tests {
         type OkResult = ();
         fn validate(&self) -> Result<(), super::ValidationError> {
             let mut err = ValidationError::new();
-            err.push("1 error", || self.size >= 1);
-            err.push("2 error", || self.size >= 2);
-            err.push("3 error", || self.size >= 3);
+            err.push("1 error", || self.size < 1);
+            err.push("2 error", || self.size < 2);
+            err.push("3 error", || self.size < 3);
             err.to_result(())
         }
     }

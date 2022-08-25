@@ -1,8 +1,11 @@
-use bigdecimal::{BigDecimal, FromPrimitive};
+use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::validation::{Validate, ValidationError};
+use crate::validation::{
+    validators::{Min, NotEmpty, IsNumeric},
+    Validate, ValidationError,
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Product {
@@ -28,16 +31,13 @@ impl Validate for InputProduct {
 
     fn validate(&self) -> Result<Self::OkResult, ValidationError> {
         let mut err = ValidationError::new();
-        err.push("Name is required", || self.name.len() <= 0);
-        err.push("Invalid barcode", || {
-            if self.barcode.is_none() {
-                return false;
-            }
-            let barcode = self.barcode.clone().unwrap_or_default();
-            barcode.len() <= 0 || !barcode.chars().all(char::is_numeric)
-        });
-        err.push("Invalid price", || self.price < BigDecimal::from_i32(0).unwrap());
-        err.push("Invalid stock", || self.stock < 0);
+        err.push("Name is required", || self.name.not_empty());
+        err.push("Invalid barcode", || self.barcode.not_empty());
+        if let Some(barcode) = &self.barcode {
+            err.push("Invalid barcode", || barcode.is_numeric());
+        }
+        err.push("Invalid price", || self.price.minimum(0));
+        err.push("Invalid stock", || self.stock.minimum(0));
         err.to_result(())
     }
 }
@@ -55,7 +55,7 @@ mod tests {
             barcode: Some("12345".into()),
             price: BigDecimal::from_i32(100).unwrap(),
             stock: 4,
-            name: "Valid".into()
+            name: "Valid".into(),
         }
     }
 

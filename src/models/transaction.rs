@@ -1,8 +1,11 @@
-use bigdecimal::{BigDecimal, FromPrimitive};
+use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::validation::{Validate, ValidationError};
+use crate::validation::{
+    validators::{Min, NotEmpty},
+    Validate, ValidationError,
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Transaction {
@@ -64,11 +67,9 @@ impl Validate for InputTransactionProduct {
     fn validate(&self) -> Result<Self::OkResult, ValidationError> {
         let mut err = ValidationError::new();
         err.push("Invalid quantity, must be higher than 0", || {
-            self.quantity <= 0
+            self.quantity.minimum(1)
         });
-        err.push("Invaid price", || {
-            self.price < BigDecimal::from_i32(0).unwrap()
-        });
+        err.push("Invaid price", || self.price.minimum(0));
         err.to_result(())
     }
 }
@@ -78,17 +79,9 @@ impl Validate for InputTransaction {
 
     fn validate(&self) -> Result<Self::OkResult, ValidationError> {
         let mut err = ValidationError::new();
-        err.push("Invalid notes", || {
-            if self.notes.is_none() {
-                return false;
-            }
-            let notes = self.notes.as_ref().unwrap();
-            notes.len() <= 0
-        });
-        err.push("Invalid total paids", || {
-            self.total_paid < BigDecimal::from_i32(0).unwrap()
-        });
-        err.push("Product must be at least 1", || self.products.len() <= 0);
+        err.push("Invalid notes", || self.notes.not_empty());
+        err.push("Invalid total paids", || self.total_paid.minimum(0));
+        err.push("Product must be at least 1", || self.products.minimum(1));
         err.to_result(())
     }
 }
