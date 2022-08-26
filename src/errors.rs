@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use actix_web::{error::ResponseError, HttpResponse};
+use actix_web::{error::ResponseError, http::header::ToStrError, HttpResponse};
 use bcrypt::BcryptError;
 use derive_more::Display;
 
@@ -15,6 +15,7 @@ pub enum ServiceError {
     BadRequest(String),
     DatabaseError(sqlx::Error),
     ValidationError(ValidationError),
+    AuthError(String),
 }
 
 impl ResponseError for ServiceError {
@@ -26,6 +27,7 @@ impl ResponseError for ServiceError {
             ServiceError::BadRequest(msg) => HttpResponse::BadRequest().json(msg),
             ServiceError::DatabaseError(err) => map_database_error(err),
             ServiceError::ValidationError(err) => HttpResponse::BadRequest().json(err),
+            ServiceError::AuthError(msg) => HttpResponse::Unauthorized().json(msg),
         }
     }
 }
@@ -52,5 +54,17 @@ impl From<sqlx::Error> for ServiceError {
 impl From<ValidationError> for ServiceError {
     fn from(err: ValidationError) -> Self {
         ServiceError::ValidationError(err)
+    }
+}
+
+impl From<ToStrError> for ServiceError {
+    fn from(err: ToStrError) -> Self {
+        ServiceError::InternalServerError(Box::new(err))
+    }
+}
+
+impl From<jsonwebtoken::errors::Error> for ServiceError {
+    fn from(err: jsonwebtoken::errors::Error) -> Self {
+        ServiceError::AuthError(err.to_string())
     }
 }

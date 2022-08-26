@@ -25,7 +25,7 @@ async fn login(
         Some(u) => {
             let key = state.secret.expose_secret();
             let key = &EncodingKey::from_secret(key.as_bytes());
-            let duration = chrono::Utc::now() + chrono::Duration::days(1);
+            let duration = chrono::Utc::now() + chrono::Duration::days(3);
             let claims = Claims {
                 sub: u.email,
                 role: u.role,

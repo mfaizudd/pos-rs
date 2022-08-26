@@ -1,11 +1,16 @@
 use std::pin::Pin;
 
-use actix_web::{http::header, Error, FromRequest, HttpRequest, web};
+use actix_web::{http::header, web, FromRequest, HttpRequest};
 use futures_util::Future;
 use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
 
-use crate::{jwt::validate_token, AppState, validation::{Validate, ValidationError}};
+use crate::{
+    errors::ServiceError,
+    jwt::validate_token,
+    validation::{Validate, ValidationError},
+    AppState,
+};
 
 use super::user::Role;
 
@@ -34,7 +39,7 @@ pub struct Claims {
 }
 
 impl FromRequest for Claims {
-    type Error = Error;
+    type Error = ServiceError;
 
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
@@ -47,16 +52,14 @@ impl FromRequest for Claims {
                 .expect("App state not configured properly");
             let bearer_token = req_headers
                 .get(header::AUTHORIZATION)
-                .ok_or(actix_web::error::ErrorUnauthorized("Unauthorized"))?
-                .to_str()
-                .map_err(actix_web::error::ErrorInternalServerError)?
+                .ok_or(ServiceError::AuthError("Unauthorized".into()))?
+                .to_str()?
                 .split(' ')
                 .collect::<Vec<&str>>();
             if bearer_token.len() != 2 {
-                return Err(actix_web::error::ErrorUnauthorized("Unauthorized"));
+                return Err(ServiceError::AuthError("Invalid bearer token".into()));
             }
-            let claims = validate_token(bearer_token[1], state.secret.expose_secret())
-                .map_err(actix_web::error::ErrorInternalServerError)?;
+            let claims = validate_token(bearer_token[1], state.secret.expose_secret())?;
             Ok(claims)
         })
     }
