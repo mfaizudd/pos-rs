@@ -26,6 +26,12 @@ pub async fn get(uid: web::Path<Uuid>, pool: web::Data<DbPool>) -> Result<HttpRe
     Ok(HttpResponse::Ok().json(transaction))
 }
 
+#[get("/transactions")]
+pub async fn get_all(pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
+    let transactions = db::transactions::get_all(pool).await?;
+    Ok(HttpResponse::Ok().json(transactions))
+}
+
 pub fn routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(services![new_transaction]);
+    cfg.service(services![new_transaction, get, get_all]);
 }

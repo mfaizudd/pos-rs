@@ -35,16 +35,16 @@ pub async fn new_transaction(
                 quantity
             )
             values(
-                $1, $2, $3, $4
+                $1, $2, (select price from products where id = $2), $3
             )",
             transaction.id,
             product.product_id,
-            product.price,
             product.quantity
         )
         .execute(&mut pool)
         .await?;
     }
+    pool.commit().await?;
     Ok(transaction)
 }
 
@@ -61,4 +61,12 @@ pub async fn get(uid: Uuid, pool: web::Data<DbPool>) -> Result<TransactionRespon
     .fetch_all(&mut pool)
     .await?;
     Ok(TransactionResponse::new(transaction, products))
+}
+
+pub async fn get_all(pool: web::Data<DbPool>) -> Result<Vec<Transaction>, ServiceError> {
+    let mut pool = pool.acquire().await?;
+    let transactions = sqlx::query_as!(Transaction, "select * from transactions")
+        .fetch_all(&mut pool)
+        .await?;
+    Ok(transactions)
 }

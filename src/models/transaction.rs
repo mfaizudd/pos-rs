@@ -58,7 +58,6 @@ pub struct InputTransaction {
 pub struct InputTransactionProduct {
     pub product_id: Uuid,
     pub quantity: i32,
-    pub price: BigDecimal,
 }
 
 impl Validate for InputTransactionProduct {
@@ -69,7 +68,6 @@ impl Validate for InputTransactionProduct {
         err.push("Invalid quantity, must be higher than 0", || {
             self.quantity.minimum(1)
         });
-        err.push("Invaid price", || self.price.minimum(0));
         err.to_result(())
     }
 }
@@ -102,7 +100,6 @@ mod tests {
             notes: Some("Test".to_owned()),
             total_paid: price.clone(),
             products: vec![InputTransactionProduct {
-                price,
                 product_id: Uuid::new_v4(),
                 quantity: 4,
             }],
