@@ -21,9 +21,9 @@ pub async fn new_transaction(
 }
 
 #[get("/transactions/{id}")]
-pub async fn get(uid: web::Path<Uuid>, pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
-    let uid = uid.into_inner();
-    let transaction = db::transactions::get(uid, pool).await?;
+pub async fn get(tid: web::Path<Uuid>, pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
+    let tid = tid.into_inner();
+    let transaction = db::transactions::get(tid, pool).await?;
     Ok(HttpResponse::Ok().json(transaction))
 }
 

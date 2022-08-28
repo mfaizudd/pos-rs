@@ -57,6 +57,7 @@ async fn create_user(
 
 #[put("/users/{id}")]
 async fn update_user(
+    _: AdminClaims,
     path: web::Path<uuid::Uuid>,
     req: web::Json<InputUser>,
     db: web::Data<DbPool>,
@@ -77,6 +78,7 @@ async fn update_user(
 
 #[delete("/users/{id}")]
 async fn delete_user(
+    _: AdminClaims,
     path: web::Path<uuid::Uuid>,
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {

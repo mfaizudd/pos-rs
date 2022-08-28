@@ -48,15 +48,15 @@ pub async fn new_transaction(
     Ok(transaction)
 }
 
-pub async fn get(uid: Uuid, pool: web::Data<DbPool>) -> Result<TransactionResponse, ServiceError> {
+pub async fn get(tid: Uuid, pool: web::Data<DbPool>) -> Result<TransactionResponse, ServiceError> {
     let mut pool = pool.acquire().await?;
-    let transaction = sqlx::query_as!(Transaction, "select * from transactions where id = $1", uid)
+    let transaction = sqlx::query_as!(Transaction, "select * from transactions where id = $1", tid)
         .fetch_one(&mut pool)
         .await?;
     let products = sqlx::query_as!(
         TransactionProduct,
         "select * from transaction_products where transaction_id = $1",
-        uid
+        tid
     )
     .fetch_all(&mut pool)
     .await?;
