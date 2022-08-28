@@ -1,6 +1,7 @@
 use crate::db;
 use crate::db::DbPool;
 use crate::errors::ServiceError;
+use crate::models::auth::AdminClaims;
 use crate::models::{auth::Claims, transaction::InputTransaction};
 use crate::validation::Validate;
 use actix_web::{get, post, services, web, Error, HttpResponse};
@@ -12,7 +13,7 @@ pub async fn new_transaction(
     input: web::Json<InputTransaction>,
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, ServiceError> {
-    let user = db::users::find_by_email(claims.sub.clone(), pool.clone()).await?;
+    let user = db::users::find_by_email(claims.sub.clone(), &pool).await?;
     let input = input.into_inner();
     input.validate()?;
     let transaction = db::transactions::new_transaction(user.id, input, pool.clone()).await?;
@@ -27,7 +28,7 @@ pub async fn get(uid: web::Path<Uuid>, pool: web::Data<DbPool>) -> Result<HttpRe
 }
 
 #[get("/transactions")]
-pub async fn get_all(pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
+pub async fn get_all(_: AdminClaims, pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
     let transactions = db::transactions::get_all(pool).await?;
     Ok(HttpResponse::Ok().json(transactions))
 }

@@ -8,10 +8,32 @@ use jsonwebtoken::{encode, EncodingKey, Header};
 use secrecy::ExposeSecret;
 
 use crate::{
-    db::{users, DbPool},
-    models::auth::{Claims, InputLogin},
+    db::{self, users, DbPool},
+    errors::ServiceError,
+    models::{
+        auth::{Claims, InputLogin, InputRegister},
+        user::Role,
+    },
     AppState,
+    validation::Validate
 };
+
+#[post("/auth/register")]
+async fn register(
+    req: web::Json<InputRegister>,
+    db: web::Data<DbPool>,
+) -> Result<HttpResponse, ServiceError> {
+    let input_user = req.into_inner();
+    input_user.validate()?;
+    let InputRegister {
+        full_name,
+        email,
+        password,
+    } = input_user;
+    let user = db::users::add(&full_name, &email, &password, Some(Role::User), db).await?;
+
+    Ok(HttpResponse::Ok().json(user))
+}
 
 #[post("/auth/login")]
 async fn login(
@@ -19,8 +41,7 @@ async fn login(
     pool: web::Data<DbPool>,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
-    let user = users::login(&req.email, &req.password, pool)
-        .await?;
+    let user = users::login(&req.email, &req.password, pool).await?;
     match user {
         Some(u) => {
             let key = state.secret.expose_secret();
@@ -51,9 +72,10 @@ async fn status(user: Option<Claims>) -> Result<HttpResponse, Error> {
 
 #[post("/auth/logout")]
 async fn logout(_user: Claims) -> Result<HttpResponse, Error> {
+    // TODO: revoke the key
     Ok(HttpResponse::Ok().body("Logged out"))
 }
 
 pub fn routes(cfg: &mut ServiceConfig) {
-    cfg.service(services![login, login, status, logout]);
+    cfg.service(services![login, login, status, logout, register]);
 }

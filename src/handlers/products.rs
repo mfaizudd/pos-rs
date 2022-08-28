@@ -4,6 +4,7 @@ use uuid::Uuid;
 
 use crate::db::{self, DbPool};
 use crate::errors::ServiceError;
+use crate::models::auth::Claims;
 use crate::models::product::InputProduct;
 use crate::validation::Validate;
 
@@ -25,6 +26,7 @@ async fn get_product(
 
 #[post("/products")]
 async fn create_product(
+    _: Claims,
     req: web::Json<InputProduct>,
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, ServiceError> {
@@ -42,6 +44,7 @@ async fn create_product(
 
 #[put("/products/{id}")]
 async fn update_product(
+    _: Claims,
     path: web::Path<Uuid>,
     req: web::Json<InputProduct>,
     pool: web::Data<DbPool>,
@@ -62,6 +65,7 @@ async fn update_product(
 
 #[delete("/products/{id}")]
 async fn delete_product(
+    _: Claims,
     path: web::Path<Uuid>,
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {

@@ -27,7 +27,7 @@ pub async fn get_all(pool: web::Data<DbPool>) -> Result<Vec<User>, ServiceError>
     Ok(user)
 }
 
-pub async fn find(uid: Uuid, pool: web::Data<DbPool>) -> Result<Option<User>, ServiceError> {
+pub async fn find(uid: Uuid, pool: &web::Data<DbPool>) -> Result<Option<User>, ServiceError> {
     let mut pool = pool.acquire().await?;
     let user = sqlx::query_as!(
         User,
@@ -50,7 +50,7 @@ pub async fn find(uid: Uuid, pool: web::Data<DbPool>) -> Result<Option<User>, Se
     Ok(user)
 }
 
-pub async fn find_by_email(email: String, pool: web::Data<DbPool>) -> Result<User, ServiceError> {
+pub async fn find_by_email(email: String, pool: &web::Data<DbPool>) -> Result<User, ServiceError> {
     let mut pool = pool.acquire().await?;
     let user = sqlx::query_as!(
         User,

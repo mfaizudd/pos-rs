@@ -3,12 +3,15 @@ use actix_web::{delete, get, post, put, services, web, Error, HttpResponse};
 use crate::{
     db::{self, DbPool},
     errors::ServiceError,
-    models::user::InputUser,
+    models::{
+        auth::{AdminClaims, Claims},
+        user::InputUser,
+    },
     validation::Validate,
 };
 
 #[get("/users")]
-async fn get_users(db: web::Data<DbPool>) -> Result<HttpResponse, Error> {
+async fn get_users(_: AdminClaims, db: web::Data<DbPool>) -> Result<HttpResponse, Error> {
     let users = db::users::get_all(db).await?;
 
     Ok(HttpResponse::Ok().json(users))
@@ -16,11 +19,16 @@ async fn get_users(db: web::Data<DbPool>) -> Result<HttpResponse, Error> {
 
 #[get("/users/{id}")]
 async fn get_user(
+    claims: Claims,
     path: web::Path<uuid::Uuid>,
     db: web::Data<DbPool>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ServiceError> {
+    let requester = db::users::find_by_email(claims.sub, &db).await?;
     let uid = path.into_inner();
-    let user = db::users::find(uid, db).await?;
+    if requester.id != uid {
+        return Err(ServiceError::AuthError("Requester id doesn't match".into()));
+    }
+    let user = db::users::find(uid, &db).await?;
 
     Ok(match user {
         Some(u) => HttpResponse::Ok().json(u),
@@ -30,6 +38,7 @@ async fn get_user(
 
 #[post("/users")]
 async fn create_user(
+    _: AdminClaims,
     req: web::Json<InputUser>,
     db: web::Data<DbPool>,
 ) -> Result<HttpResponse, ServiceError> {
