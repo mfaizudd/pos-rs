@@ -1,22 +1,21 @@
 use super::DbPool;
 use crate::{
     errors::ServiceError,
-    models::user::{Role, User},
+    models::user::{Role, User, UserResponse},
 };
 use actix_web::web;
 use bcrypt::{hash, verify, DEFAULT_COST};
 use uuid::Uuid;
 
-pub async fn get_all(pool: web::Data<DbPool>) -> Result<Vec<User>, ServiceError> {
+pub async fn get_all(pool: web::Data<DbPool>) -> Result<Vec<UserResponse>, ServiceError> {
     let mut pool = pool.acquire().await?;
-    let user = sqlx::query_as!(
-        User,
+    let users = sqlx::query_as!(
+        UserResponse,
         r#"
     select 
         id, 
         full_name, 
         email, 
-        password, 
         role as "role: _", 
         created_at, 
         updated_at 
@@ -24,19 +23,18 @@ pub async fn get_all(pool: web::Data<DbPool>) -> Result<Vec<User>, ServiceError>
     )
     .fetch_all(&mut pool)
     .await?;
-    Ok(user)
+    Ok(users)
 }
 
-pub async fn find(uid: Uuid, pool: &web::Data<DbPool>) -> Result<Option<User>, ServiceError> {
+pub async fn find(uid: Uuid, pool: &web::Data<DbPool>) -> Result<Option<UserResponse>, ServiceError> {
     let mut pool = pool.acquire().await?;
     let user = sqlx::query_as!(
-        User,
+        UserResponse,
         r#"
     select 
         id, 
         full_name, 
         email, 
-        password, 
         role as "role: _", 
         created_at, 
         updated_at 
@@ -50,16 +48,15 @@ pub async fn find(uid: Uuid, pool: &web::Data<DbPool>) -> Result<Option<User>, S
     Ok(user)
 }
 
-pub async fn find_by_email(email: String, pool: &web::Data<DbPool>) -> Result<User, ServiceError> {
+pub async fn find_by_email(email: String, pool: &web::Data<DbPool>) -> Result<UserResponse, ServiceError> {
     let mut pool = pool.acquire().await?;
     let user = sqlx::query_as!(
-        User,
+        UserResponse,
         r#"
     select 
         id, 
         full_name, 
         email, 
-        password, 
         role as "role: _", 
         created_at, 
         updated_at 
