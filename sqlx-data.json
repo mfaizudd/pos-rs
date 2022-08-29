@@ -1,3 +1,850 @@
 {
-  "db": "PostgreSQL"
+  "db": "PostgreSQL",
+  "05eb25bfa9a16a2a2a5a29f4507ad34fbd8ea9bff07823e89b0b1ddb0adc9bd6": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "barcode",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "price",
+          "ordinal": 3,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "stock",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 5,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 6,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "select * from products"
+  },
+  "1b4d75b8ca2e028af2e6315a5459e730d2a9bcea6b6440e55c1d84ffa4b41466": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "barcode",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "price",
+          "ordinal": 3,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "stock",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 5,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 6,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Numeric",
+          "Int4",
+          "Timestamp",
+          "Timestamp"
+        ]
+      }
+    },
+    "query": "insert into products(name, barcode, price, stock, created_at, updated_at)\n         values($1, $2, $3, $4, $5, $6) returning *"
+  },
+  "28c8c3393d508de0b908e8dbb5a4ba88bbea259402fbe051d7e254f07cfbffcb": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "full_name",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "role: _",
+          "ordinal": 3,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "admin",
+                  "user"
+                ]
+              },
+              "name": "role"
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ordinal": 4,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 5,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "\n    select \n        id, \n        full_name, \n        email, \n        role as \"role: _\", \n        created_at, \n        updated_at \n    from users"
+  },
+  "43e3a756950389ff0c2d92027107ee0d150ffc2a5c89178e673949c3cf20e7b4": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "notes",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "total_paid",
+          "ordinal": 3,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 4,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Numeric",
+          "Uuid",
+          "Timestamp"
+        ]
+      }
+    },
+    "query": "insert into transactions(notes, total_paid, user_id, created_at) values($1, $2, $3, $4) returning *"
+  },
+  "6826f0b9f8ef46e6597d388d84514985fc96bde2c0eeabaa497c94b44cff1dd4": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "notes",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "total_paid",
+          "ordinal": 3,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 4,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "select * from transactions where id = $1"
+  },
+  "6ae2a62fcc0d3df712d6d83ed3fc87cb0670bcc02cc9a7cdd4e04fc2672e8752": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "full_name",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "password",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "role: _",
+          "ordinal": 4,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "admin",
+                  "user"
+                ]
+              },
+              "name": "role"
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ordinal": 5,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 6,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "admin",
+                  "user"
+                ]
+              },
+              "name": "role"
+            }
+          },
+          "Timestamp",
+          "Timestamp"
+        ]
+      }
+    },
+    "query": "\n    insert into users(\n        full_name, \n        email, \n        password, \n        role, \n        created_at, \n        updated_at \n    )\n    values(\n        $1, $2, $3, $4, $5, $6\n    )\n    returning \n        id,\n        full_name, \n        email, \n        password, \n        role as \"role: _\",\n        created_at, \n        updated_at\n    "
+  },
+  "72556d4b01c455f33026b34e1c7671f2c530489cec74b395000dfd5c6aad7633": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "full_name",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "role: _",
+          "ordinal": 3,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "admin",
+                  "user"
+                ]
+              },
+              "name": "role"
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ordinal": 4,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 5,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n    select \n        id, \n        full_name, \n        email, \n        role as \"role: _\", \n        created_at, \n        updated_at \n    from users\n    where email = $1"
+  },
+  "a468eaffbdd7f4f44cfb3a3716ab79b4c8cc1b0bb66a3daa973fa89e08cb2315": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "barcode",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "price",
+          "ordinal": 3,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "stock",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 5,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 6,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "select * from products where id = $1"
+  },
+  "b0539523e23773e7d01ac00be741e59c56a0dbd6a1cb436c5a92e53062505ab2": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "delete from users where id = $1"
+  },
+  "b0a81c5c4ae8be4b08fed2b2e6dda92e5e01f0e3fbb31a5e909818c5b4e973eb": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "full_name",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "password",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "role: _",
+          "ordinal": 4,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "admin",
+                  "user"
+                ]
+              },
+              "name": "role"
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ordinal": 5,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 6,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n    select \n        id, \n        full_name, \n        email, \n        password, \n        role as \"role: _\", \n        created_at, \n        updated_at \n    from users\n    where email = $1"
+  },
+  "b66a26d0211b522273d531f5a4aaf9ce4db968004c7ef63229c4891b2daa2200": {
+    "describe": {
+      "columns": [
+        {
+          "name": "transaction_id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "product_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "quantity",
+          "ordinal": 2,
+          "type_info": "Int4"
+        },
+        {
+          "name": "price",
+          "ordinal": 3,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "select * from transaction_products where transaction_id = $1"
+  },
+  "bd6c6d9950a27828401e40d9c59cb43e29ce8c7043ab75fb29e6f0dffc667292": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "full_name",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "role: _",
+          "ordinal": 3,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "admin",
+                  "user"
+                ]
+              },
+              "name": "role"
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ordinal": 4,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 5,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n    select \n        id, \n        full_name, \n        email, \n        role as \"role: _\", \n        created_at, \n        updated_at \n    from users\n    where id = $1"
+  },
+  "c72bab10d24a8abe0f7380475ac7b2e7d280cb63d501add1cff11dd59937278f": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "delete from products where id = $1"
+  },
+  "c82dd97adc49d093aaf84c448da16d2c5d35227c47c84432c751d77bedea0024": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "full_name",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "password",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "role: _",
+          "ordinal": 4,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "admin",
+                  "user"
+                ]
+              },
+              "name": "role"
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ordinal": 5,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 6,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "admin",
+                  "user"
+                ]
+              },
+              "name": "role"
+            }
+          },
+          "Timestamp",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n    update users set\n        full_name = $1, \n        email = $2, \n        password = $3, \n        role = $4, \n        updated_at = $5\n    where id = $6\n    returning \n        id,\n        full_name, \n        email, \n        password, \n        role as \"role: _\",\n        created_at,\n        updated_at\n    "
+  },
+  "d32ef2bb7a19f1597e7e01b10dc25492c90313437c3ce28957e2363aa0589a91": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Int4"
+        ]
+      }
+    },
+    "query": "insert into transaction_products(\n                transaction_id,\n                product_id,\n                price,\n                quantity\n            )\n            values(\n                $1, $2, (select price from products where id = $2), $3\n            )"
+  },
+  "d93bd8a519d5cc2b12d09c64b6ca371475f21d8e8472d4c64c3ab59d51c1fba8": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "barcode",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "price",
+          "ordinal": 3,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "stock",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 5,
+          "type_info": "Timestamp"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 6,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Numeric",
+          "Int4",
+          "Timestamp",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "update products\n         set name = $1,\n            barcode = $2,\n            price = $3,\n            stock = $4,\n            updated_at = $5\n         where id = $6\n         returning *"
+  },
+  "fb8264f18de51827ad4201575e49593bc4631a6d5c0b1f35989184727bfc990e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "notes",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "total_paid",
+          "ordinal": 3,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 4,
+          "type_info": "Timestamp"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "select * from transactions"
+  }
 }

@@ -3,14 +3,6 @@ edition = "2021"
 name = "pos-rs"
 version = "0.1.0"
 
-[[bin]]
-name = "pos_rs"
-path = "src/main.rs"
-
-[lib]
-name = "pos_rs"
-path = "src/lib.rs"
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -28,5 +20,5 @@ redis = "0.21.5"
 secrecy = "0.8.0"
 serde = {version = "1.0", features = ["derive"]}
 sha2 = "0.10.2"
-sqlx = {version = "0.6", features = ["runtime-actix-native-tls", "postgres", "uuid", "bigdecimal", "chrono"]}
+sqlx = {version = "0.6", features = ["runtime-actix-native-tls", "postgres", "uuid", "bigdecimal", "chrono", "offline"]}
 uuid = {version = "1.1.2", features = ["v4", "serde"]}

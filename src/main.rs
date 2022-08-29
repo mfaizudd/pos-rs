@@ -1,5 +1,3 @@
-extern crate pos_rs;
-
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use dotenvy::dotenv;
