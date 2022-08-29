@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use actix_web::{
     get, post, services,
     web::{self, ServiceConfig},
@@ -5,17 +7,20 @@ use actix_web::{
 };
 
 use jsonwebtoken::{encode, EncodingKey, Header};
+use redis::AsyncCommands;
 use secrecy::ExposeSecret;
+use sha2::{Digest, Sha256};
+use uuid::Uuid;
 
 use crate::{
-    db::{self, users, DbPool},
+    db::{self, users, DbPool, RedisPool},
     errors::ServiceError,
     models::{
-        auth::{Claims, InputLogin, InputRegister},
+        auth::{Claims, InputLogin, InputRegister, ServiceToken},
         user::Role,
     },
+    validation::Validate,
     AppState,
-    validation::Validate
 };
 
 #[post("/auth/register")]
@@ -39,24 +44,32 @@ async fn register(
 async fn login(
     req: web::Json<InputLogin>,
     pool: web::Data<DbPool>,
+    redis_pool: web::Data<RedisPool>,
     state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ServiceError> {
+    let mut redis_conn = redis_pool.get().await?;
     let user = users::login(&req.email, &req.password, pool).await?;
     match user {
         Some(u) => {
+            let uuid = Uuid::new_v4();
+            let token_key = format!("{}{}", uuid, u.email);
             let key = state.secret.expose_secret();
             let key = &EncodingKey::from_secret(key.as_bytes());
-            let duration = chrono::Utc::now() + chrono::Duration::days(3);
+            let expiration = chrono::Utc::now() + chrono::Duration::days(3);
             let claims = Claims {
                 sub: u.email,
                 role: u.role,
-                exp: duration.timestamp(),
+                exp: expiration.timestamp(),
             };
-            let token = encode(&Header::default(), &claims, key);
-            match token {
-                Ok(t) => Ok(HttpResponse::Ok().json(t)),
-                Err(_) => Ok(HttpResponse::InternalServerError().body("Token creation failed")),
-            }
+            let token = encode(&Header::default(), &claims, key)?;
+            let mut hasher = Sha256::new();
+            hasher.update(token_key);
+            let token_key = format!("{:x}", hasher.finalize());
+            redis_conn.set(&token_key, &token).await?;
+            redis_conn
+                .expire_at(&token_key, expiration.timestamp().try_into()?)
+                .await?;
+            Ok(HttpResponse::Ok().json(&token_key))
         }
         None => Ok(HttpResponse::Unauthorized().json("Username/Password not found")),
     }
@@ -71,8 +84,9 @@ async fn status(user: Option<Claims>) -> Result<HttpResponse, Error> {
 }
 
 #[post("/auth/logout")]
-async fn logout(_user: Claims) -> Result<HttpResponse, Error> {
-    // TODO: revoke the key
+async fn logout(token: ServiceToken, redis_pool: web::Data<RedisPool>) -> Result<HttpResponse, ServiceError> {
+    let mut redis_conn = redis_pool.get().await?;
+    redis_conn.del(token.deref()).await?;
     Ok(HttpResponse::Ok().body("Logged out"))
 }
 

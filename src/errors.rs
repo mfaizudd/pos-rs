@@ -1,8 +1,10 @@
-use std::error::Error;
+use std::{error::Error, num::TryFromIntError};
 
 use actix_web::{error::ResponseError, http::header::ToStrError, HttpResponse};
 use bcrypt::BcryptError;
+use deadpool_redis::PoolError;
 use derive_more::Display;
+use redis::RedisError;
 
 use crate::validation::ValidationError;
 
@@ -17,6 +19,10 @@ pub enum ServiceError {
     ValidationError(ValidationError),
     AuthError(String),
 }
+
+#[derive(Debug, Display)]
+struct InternalError(String);
+impl Error for InternalError {}
 
 impl ResponseError for ServiceError {
     fn error_response(&self) -> HttpResponse {
@@ -66,5 +72,29 @@ impl From<ToStrError> for ServiceError {
 impl From<jsonwebtoken::errors::Error> for ServiceError {
     fn from(err: jsonwebtoken::errors::Error) -> Self {
         ServiceError::AuthError(err.to_string())
+    }
+}
+
+impl From<PoolError> for ServiceError {
+    fn from(err: PoolError) -> Self {
+        ServiceError::InternalServerError(Box::new(err))
+    }
+}
+
+impl From<RedisError> for ServiceError {
+    fn from(err: RedisError) -> Self {
+        ServiceError::InternalServerError(Box::new(err))
+    }
+}
+
+impl From<&str> for ServiceError {
+    fn from(err: &str) -> Self {
+        ServiceError::InternalServerError(Box::new(InternalError(err.into())))
+    }
+}
+
+impl From<TryFromIntError> for ServiceError {
+    fn from(err: TryFromIntError) -> Self {
+        ServiceError::InternalServerError(Box::new(err))
     }
 }

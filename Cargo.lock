@@ -1327,6 +1327,7 @@ dependencies = [
  "redis",
  "secrecy",
  "serde",
+ "sha2",
  "sqlx",
  "uuid",
 ]
