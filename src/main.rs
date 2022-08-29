@@ -20,6 +20,7 @@ async fn main() -> std::io::Result<()> {
     let state = AppState {
         secret: Secret::new(secret),
     };
+    sqlx::migrate!();
 
     HttpServer::new(move || {
         App::new()
@@ -29,7 +30,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .configure(handlers::configuration)
     })
-    .bind(("127.0.0.1", 80))?
+    .bind(("0.0.0.0", 80))?
     .run()
     .await
 }
