@@ -20,7 +20,10 @@ async fn main() -> std::io::Result<()> {
     let state = AppState {
         secret: Secret::new(secret),
     };
-    sqlx::migrate!();
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .unwrap();
 
     HttpServer::new(move || {
         App::new()
