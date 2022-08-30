@@ -48,7 +48,7 @@ pub async fn find(uid: Uuid, pool: &web::Data<DbPool>) -> Result<Option<UserResp
     Ok(user)
 }
 
-pub async fn find_by_email(email: String, pool: &web::Data<DbPool>) -> Result<UserResponse, ServiceError> {
+pub async fn find_by_email(email: &str, pool: &web::Data<DbPool>) -> Result<UserResponse, ServiceError> {
     let mut pool = pool.acquire().await?;
     let user = sqlx::query_as!(
         UserResponse,
@@ -74,13 +74,13 @@ pub async fn add(
     email: &str,
     password: &str,
     role: Option<Role>,
-    pool: web::Data<DbPool>,
-) -> Result<User, ServiceError> {
+    pool: &web::Data<DbPool>,
+) -> Result<UserResponse, ServiceError> {
     let mut pool = pool.acquire().await?;
     let password = &hash(password, DEFAULT_COST)?;
     let now = chrono::Local::now().naive_utc();
     let user = sqlx::query_as!(
-        User,
+        UserResponse,
         r#"
     insert into users(
         full_name, 
@@ -97,7 +97,6 @@ pub async fn add(
         id,
         full_name, 
         email, 
-        password, 
         role as "role: _",
         created_at, 
         updated_at

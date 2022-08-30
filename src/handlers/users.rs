@@ -23,7 +23,7 @@ async fn get_user(
     path: web::Path<uuid::Uuid>,
     db: web::Data<DbPool>,
 ) -> Result<HttpResponse, ServiceError> {
-    let requester = db::users::find_by_email(claims.sub, &db).await?;
+    let requester = db::users::find_by_email(&claims.sub, &db).await?;
     let uid = path.into_inner();
     if requester.id != uid {
         return Err(ServiceError::AuthError("Requester id doesn't match".into()));
@@ -50,7 +50,11 @@ async fn create_user(
         password,
         role,
     } = input_user;
-    let user = db::users::add(&full_name, &email, &password, role, db).await?;
+    let existing_user = db::users::find_by_email(&email, &db).await.ok();
+    if let Some(_) = existing_user {
+        return Err(ServiceError::BadRequest("User already exists".into()));
+    }
+    let user = db::users::add(&full_name, &email, &password, role, &db).await?;
 
     Ok(HttpResponse::Ok().json(user))
 }

@@ -13,7 +13,7 @@ pub async fn new_transaction(
     input: web::Json<InputTransaction>,
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, ServiceError> {
-    let user = db::users::find_by_email(claims.sub.clone(), &pool).await?;
+    let user = db::users::find_by_email(&claims.sub, &pool).await?;
     let input = input.into_inner();
     input.validate()?;
     let transaction = db::transactions::new_transaction(user.id, input, pool.clone()).await?;

@@ -35,9 +35,13 @@ async fn register(
         email,
         password,
     } = input_user;
+    let existing_user = db::users::find_by_email(&email, &db).await.ok();
+    if let Some(_) = existing_user {
+        return Err(ServiceError::BadRequest("User already exists".into()));
+    }
     let admin_email = env::var("ADMIN_EMAIL").ok();
     let role = admin_email.map(|e| if e == email { Role::Admin } else { Role::User });
-    let user = db::users::add(&full_name, &email, &password, role, db).await?;
+    let user = db::users::add(&full_name, &email, &password, role, &db).await?;
 
     Ok(HttpResponse::Ok().json(user))
 }
