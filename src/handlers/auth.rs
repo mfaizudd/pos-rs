@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{env, ops::Deref};
 
 use actix_web::{
     get, post, services,
@@ -35,7 +35,9 @@ async fn register(
         email,
         password,
     } = input_user;
-    let user = db::users::add(&full_name, &email, &password, Some(Role::User), db).await?;
+    let admin_email = env::var("ADMIN_EMAIL").ok();
+    let role = admin_email.map(|e| if e == email { Role::Admin } else { Role::User });
+    let user = db::users::add(&full_name, &email, &password, role, db).await?;
 
     Ok(HttpResponse::Ok().json(user))
 }
@@ -84,7 +86,10 @@ async fn status(user: Option<Claims>) -> Result<HttpResponse, Error> {
 }
 
 #[post("/auth/logout")]
-async fn logout(token: ServiceToken, redis_pool: web::Data<RedisPool>) -> Result<HttpResponse, ServiceError> {
+async fn logout(
+    token: ServiceToken,
+    redis_pool: web::Data<RedisPool>,
+) -> Result<HttpResponse, ServiceError> {
     let mut redis_conn = redis_pool.get().await?;
     redis_conn.del(token.deref()).await?;
     Ok(HttpResponse::Ok().body("Logged out"))
