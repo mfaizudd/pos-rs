@@ -3,7 +3,7 @@ WORKDIR /usr/src/pos-rs
 COPY Cargo.lock .
 COPY Cargo.toml .
 RUN mkdir src
-RUN touch src/lib.rs
+RUN echo "fn main() {}" >> src/main.rs
 RUN cargo build --release
 RUN rm -rf src
 COPY . .
