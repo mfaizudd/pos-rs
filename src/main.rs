@@ -20,10 +20,7 @@ async fn main() -> std::io::Result<()> {
     let state = AppState {
         secret: Secret::new(secret),
     };
-    sqlx::migrate!()
-        .run(&pool)
-        .await
-        .unwrap();
+    sqlx::migrate!().run(&pool).await.unwrap();
 
     HttpServer::new(move || {
         App::new()
@@ -31,7 +28,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(redis_pool.clone()))
             .app_data(web::Data::new(state.clone()))
             .wrap(Logger::default())
-            .configure(handlers::configuration)
+            .service(web::scope("/api").configure(handlers::configuration))
     })
     .bind(("0.0.0.0", 80))?
     .run()
