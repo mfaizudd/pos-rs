@@ -9,6 +9,7 @@ services:
       - DATABASE_URL=postgres://postgres:postgres@db/pos_rs
       - REDIS_URL=redis://redis:6379
       - SECRET=${SECRET}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
 
   db:
     image: postgres
