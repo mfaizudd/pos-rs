@@ -100,5 +100,5 @@ async fn logout(
 }
 
 pub fn routes(cfg: &mut ServiceConfig) {
-    cfg.service(services![login, login, status, logout, register]);
+    cfg.service(services![login, status, logout, register]);
 }
