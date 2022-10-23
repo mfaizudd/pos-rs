@@ -85,7 +85,7 @@ async fn login(
 async fn status(user: Option<Claims>) -> Result<HttpResponse, Error> {
     Ok(match user {
         Some(u) => HttpResponse::Ok().json(u),
-        None => HttpResponse::Unauthorized().body("Not logged in"),
+        None => HttpResponse::Unauthorized().json("Not logged in"),
     })
 }
 
@@ -96,7 +96,7 @@ async fn logout(
 ) -> Result<HttpResponse, ServiceError> {
     let mut redis_conn = redis_pool.get().await?;
     redis_conn.del(token.deref()).await?;
-    Ok(HttpResponse::Ok().body("Logged out"))
+    Ok(HttpResponse::Ok().json("Logged out"))
 }
 
 pub fn routes(cfg: &mut ServiceConfig) {
