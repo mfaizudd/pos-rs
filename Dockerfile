@@ -1,16 +1,19 @@
-FROM rust:1.65 as builder
-WORKDIR /usr/src/pos-rs
-COPY Cargo.lock Cargo.toml ./
-RUN mkdir src && \
-    echo "fn main() {}" >> src/main.rs && \
-    cargo build --release && \
-    rm -rf src
+FROM rust AS chef
+WORKDIR /pos-rs
+RUN cargo install cargo-chef
+
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef as builder
+COPY --from=planner /pos-rs/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 RUN cargo build --release
 
-FROM debian:bullseye-slim
-RUN apt update && apt install -y build-essential
-COPY --from=builder /usr/src/pos-rs/target/release/pos-rs /usr/local/bin/pos-rs
+FROM debian:bullseye-slim AS runtime
+COPY --from=builder /pos-rs/target/release/pos-rs /usr/local/bin/pos-rs
 COPY ./migrations ./migrations
 EXPOSE 80
 ENV PORT=80
