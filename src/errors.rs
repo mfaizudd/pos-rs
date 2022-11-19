@@ -69,12 +69,6 @@ impl From<ToStrError> for ServiceError {
     }
 }
 
-impl From<jsonwebtoken::errors::Error> for ServiceError {
-    fn from(err: jsonwebtoken::errors::Error) -> Self {
-        ServiceError::AuthError(err.to_string())
-    }
-}
-
 impl From<PoolError> for ServiceError {
     fn from(err: PoolError) -> Self {
         ServiceError::InternalServerError(Box::new(err))
@@ -95,6 +89,12 @@ impl From<&str> for ServiceError {
 
 impl From<TryFromIntError> for ServiceError {
     fn from(err: TryFromIntError) -> Self {
+        ServiceError::InternalServerError(Box::new(err))
+    }
+}
+
+impl From<serde_json::Error> for ServiceError {
+    fn from(err: serde_json::Error) -> Self {
         ServiceError::InternalServerError(Box::new(err))
     }
 }

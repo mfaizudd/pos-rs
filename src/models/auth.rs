@@ -3,15 +3,12 @@ use std::{ops::Deref, pin::Pin};
 use actix_web::{http::header, web, FromRequest, HttpRequest};
 use futures_util::Future;
 use redis::cmd;
-use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     db::RedisPool,
     errors::ServiceError,
-    jwt::validate_token,
     validation::{validators::NotEmpty, Validate, ValidationError},
-    AppState,
 };
 
 use super::user::Role;
@@ -80,7 +77,7 @@ async fn extract_bearer_token(req: &HttpRequest) -> Result<String, ServiceError>
     Ok(bearer_token[1].into())
 }
 
-async fn extract_token(req: &HttpRequest) -> Result<String, ServiceError> {
+async fn extract_claims(req: &HttpRequest) -> Result<Claims, ServiceError> {
     let bearer_token = extract_bearer_token(req).await?;
     let redis_pool = req
         .app_data::<web::Data<RedisPool>>()
@@ -91,19 +88,8 @@ async fn extract_token(req: &HttpRequest) -> Result<String, ServiceError> {
         .query_async(&mut redis_conn)
         .await
         .map_err(|_| ServiceError::AuthError("Failed to get token".into()))?;
-    Ok(token)
-}
-
-fn extract_claims(token: &String, state: &web::Data<AppState>) -> Result<Claims, ServiceError> {
-    let claims = validate_token(token, state.secret.expose_secret())?;
+    let claims: Claims = serde_json::from_str(&token)?;
     Ok(claims)
-}
-
-fn get_state(req: &HttpRequest) -> Result<&web::Data<AppState>, ServiceError> {
-    let state = req
-        .app_data::<web::Data<AppState>>()
-        .ok_or("App state not configured properly")?;
-    Ok(state)
 }
 
 impl FromRequest for Claims {
@@ -114,9 +100,8 @@ impl FromRequest for Claims {
     fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
         let req = req.clone();
         Box::pin(async move {
-            let state = get_state(&req)?;
-            let token = extract_token(&req).await?;
-            extract_claims(&token, state)
+            let claims = extract_claims(&req).await?;
+            Ok(claims)
         })
     }
 }
@@ -137,9 +122,7 @@ impl FromRequest for AdminClaims {
     fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
         let req = req.clone();
         Box::pin(async move {
-            let state = get_state(&req)?;
-            let token = extract_token(&req).await?;
-            let claims = extract_claims(&token, state)?;
+            let claims = extract_claims(&req).await?;
             let claims = AdminClaims(claims);
             match claims.role {
                 Role::Admin => Ok(claims),

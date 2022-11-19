@@ -6,9 +6,7 @@ use actix_web::{
     Error, HttpResponse,
 };
 
-use jsonwebtoken::{encode, EncodingKey, Header};
 use redis::AsyncCommands;
-use secrecy::ExposeSecret;
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
@@ -20,7 +18,6 @@ use crate::{
         user::Role,
     },
     validation::Validate,
-    AppState,
 };
 
 #[post("/auth/register")]
@@ -51,7 +48,6 @@ async fn login(
     req: web::Json<InputLogin>,
     pool: web::Data<DbPool>,
     redis_pool: web::Data<RedisPool>,
-    state: web::Data<AppState>,
 ) -> Result<HttpResponse, ServiceError> {
     let mut redis_conn = redis_pool.get().await?;
     let user = users::login(&req.email, &req.password, pool).await?;
@@ -59,15 +55,13 @@ async fn login(
         Some(u) => {
             let uuid = Uuid::new_v4();
             let token_key = format!("{}{}", uuid, u.email);
-            let key = state.secret.expose_secret();
-            let key = &EncodingKey::from_secret(key.as_bytes());
             let expiration = chrono::Utc::now() + chrono::Duration::days(3);
             let claims = Claims {
                 sub: u.email,
                 role: u.role,
                 exp: expiration.timestamp(),
             };
-            let token = encode(&Header::default(), &claims, key)?;
+            let token = serde_json::to_string(&claims)?;
             let mut hasher = Sha256::new();
             hasher.update(token_key);
             let token_key = format!("{:x}", hasher.finalize());
