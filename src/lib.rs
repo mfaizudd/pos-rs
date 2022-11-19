@@ -1,5 +1,3 @@
-extern crate bcrypt;
-
 use secrecy::Secret;
 
 pub mod db;

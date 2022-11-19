@@ -4,7 +4,7 @@ use crate::{
     models::user::{Role, User, UserResponse},
 };
 use actix_web::web;
-use bcrypt::{hash, verify, DEFAULT_COST};
+use argon2::{self, Config};
 use uuid::Uuid;
 
 pub async fn get_all(pool: web::Data<DbPool>) -> Result<Vec<UserResponse>, ServiceError> {
@@ -26,7 +26,10 @@ pub async fn get_all(pool: web::Data<DbPool>) -> Result<Vec<UserResponse>, Servi
     Ok(users)
 }
 
-pub async fn find(uid: Uuid, pool: &web::Data<DbPool>) -> Result<Option<UserResponse>, ServiceError> {
+pub async fn find(
+    uid: Uuid,
+    pool: &web::Data<DbPool>,
+) -> Result<Option<UserResponse>, ServiceError> {
     let mut pool = pool.acquire().await?;
     let user = sqlx::query_as!(
         UserResponse,
@@ -48,7 +51,10 @@ pub async fn find(uid: Uuid, pool: &web::Data<DbPool>) -> Result<Option<UserResp
     Ok(user)
 }
 
-pub async fn find_by_email(email: &str, pool: &web::Data<DbPool>) -> Result<UserResponse, ServiceError> {
+pub async fn find_by_email(
+    email: &str,
+    pool: &web::Data<DbPool>,
+) -> Result<UserResponse, ServiceError> {
     let mut pool = pool.acquire().await?;
     let user = sqlx::query_as!(
         UserResponse,
@@ -77,7 +83,9 @@ pub async fn add(
     pool: &web::Data<DbPool>,
 ) -> Result<UserResponse, ServiceError> {
     let mut pool = pool.acquire().await?;
-    let password = &hash(password, DEFAULT_COST)?;
+    let salt = Uuid::new_v4();
+    let config = Config::default();
+    let password = argon2::hash_encoded(password.as_bytes(), salt.as_bytes(), &config)?;
     let now = chrono::Local::now().naive_utc();
     let user = sqlx::query_as!(
         UserResponse,
@@ -122,7 +130,9 @@ pub async fn update(
     pool: web::Data<DbPool>,
 ) -> Result<User, ServiceError> {
     let mut pool = pool.acquire().await?;
-    let password = &hash(password, DEFAULT_COST)?;
+    let salt = Uuid::new_v4();
+    let config = Config::default();
+    let password = argon2::hash_encoded(password.as_bytes(), salt.as_bytes(), &config)?;
     let now = chrono::Local::now().naive_utc();
     println!("{}", uid);
     let user = sqlx::query_as!(
@@ -187,6 +197,6 @@ pub async fn login(
     )
     .fetch_one(&mut pool)
     .await?;
-    let success = verify(password, &user.password)?;
+    let success = argon2::verify_encoded(&user.password, password.as_bytes())?;
     Ok(if success { Some(user) } else { None })
 }

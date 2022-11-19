@@ -1,7 +1,6 @@
 use std::{error::Error, num::TryFromIntError};
 
 use actix_web::{error::ResponseError, http::header::ToStrError, HttpResponse};
-use bcrypt::BcryptError;
 use deadpool_redis::PoolError;
 use derive_more::Display;
 use redis::RedisError;
@@ -42,12 +41,6 @@ fn map_database_error(err: &sqlx::Error) -> HttpResponse {
     match err {
         sqlx::error::Error::RowNotFound => HttpResponse::NotFound().json("Records not found"),
         other => HttpResponse::InternalServerError().json(other.to_string()),
-    }
-}
-
-impl From<BcryptError> for ServiceError {
-    fn from(err: BcryptError) -> Self {
-        ServiceError::InternalServerError(Box::new(err))
     }
 }
 
@@ -95,6 +88,12 @@ impl From<TryFromIntError> for ServiceError {
 
 impl From<serde_json::Error> for ServiceError {
     fn from(err: serde_json::Error) -> Self {
+        ServiceError::InternalServerError(Box::new(err))
+    }
+}
+
+impl From<argon2::Error> for ServiceError {
+    fn from(err: argon2::Error) -> Self {
         ServiceError::InternalServerError(Box::new(err))
     }
 }
