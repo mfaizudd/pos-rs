@@ -2,17 +2,18 @@ version: '3'
 
 services:
   pos-rs:
-    image: pos-rs
+    build: .
     ports:
-      - 8000:80
+      - 9000:80
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db/pos_rs
       - REDIS_URL=redis://redis:6379
       - SECRET=${SECRET}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN}
 
   db:
-    image: postgres
+    image: postgres:14
     volumes:
       - psql:/var/lib/postgresql/data
     environment:
