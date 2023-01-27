@@ -12,7 +12,7 @@ pub enum ServiceError {
     #[display(fmt = "Internal Server Error")]
     InternalServerError(Box<dyn Error + Sync + Send>),
 
-    #[display(fmt = "Bad Request: {}", _0)]
+    #[display(fmt = "Bad Request: {_0}")]
     BadRequest(String),
     DatabaseError(sqlx::Error),
     ValidationError(ValidationError),

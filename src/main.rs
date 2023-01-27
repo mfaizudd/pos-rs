@@ -22,6 +22,6 @@ async fn main() -> std::io::Result<()> {
     let port = port.parse::<u16>().expect("Invalid port");
     let allowed_origin = env::var("ALLOWED_ORIGIN").expect("Allowed origin must be set");
     sqlx::migrate!().run(&pool).await.unwrap();
-    let address = TcpListener::bind(format!("0.0.0.0:{}", port))?;
+    let address = TcpListener::bind(format!("0.0.0.0:{port}"))?;
     pos_rs::run(address, pool, redis_pool, state, allowed_origin)?.await
 }

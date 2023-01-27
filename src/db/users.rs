@@ -134,7 +134,7 @@ pub async fn update(
     let config = Config::default();
     let password = argon2::hash_encoded(password.as_bytes(), salt.as_bytes(), &config)?;
     let now = chrono::Local::now().naive_utc();
-    println!("{}", uid);
+    println!("{uid}");
     let user = sqlx::query_as!(
         User,
         r#"
