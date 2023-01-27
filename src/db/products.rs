@@ -2,7 +2,7 @@ use actix_web::web;
 use bigdecimal::BigDecimal;
 use uuid::Uuid;
 
-use crate::{models::product::Product, errors::ServiceError};
+use crate::{errors::ServiceError, models::product::Product};
 
 use super::DbPool;
 

@@ -1,4 +1,3 @@
-pub mod validators;
 mod error;
+pub mod validators;
 pub use error::*;
-

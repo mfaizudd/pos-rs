@@ -4,8 +4,8 @@ pub mod db;
 pub mod errors;
 pub mod handlers;
 pub mod models;
-pub mod validation;
 mod startup;
+pub mod validation;
 
 pub use startup::run;
 

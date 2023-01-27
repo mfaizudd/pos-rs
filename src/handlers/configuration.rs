@@ -1,6 +1,6 @@
 use actix_web::web::ServiceConfig;
 
-use super::{users, auth, products, transactions};
+use super::{auth, products, transactions, users};
 
 pub fn configuration(cfg: &mut ServiceConfig) {
     cfg.configure(users::routes)

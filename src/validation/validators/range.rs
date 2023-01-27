@@ -16,7 +16,10 @@ pub trait Min<T: Ord> {
     fn minimum(&self, min: T) -> bool;
 }
 
-impl<T> Min<T> for T where T: Ord {
+impl<T> Min<T> for T
+where
+    T: Ord,
+{
     fn minimum(&self, min: T) -> bool {
         self >= &min
     }

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::validation::{
-    validators::{Min, NotEmpty, IsNumeric},
+    validators::{IsNumeric, Min, NotEmpty},
     Validate, ValidationError,
 };
 
