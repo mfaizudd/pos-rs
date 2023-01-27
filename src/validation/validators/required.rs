@@ -13,13 +13,13 @@ impl NotEmpty for Option<String> {
             return true;
         }
         let the_string = self.as_ref().unwrap();
-        the_string.len() > 0
+        !the_string.is_empty()
     }
 }
 
 impl NotEmpty for String {
     fn not_empty(&self) -> bool {
-        self.len() > 0
+        !self.is_empty()
     }
 }
 

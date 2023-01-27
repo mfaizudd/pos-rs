@@ -45,8 +45,8 @@ impl Validate for InputLogin {
 
     fn validate(&self) -> Result<Self::OkResult, crate::validation::ValidationError> {
         let mut err = ValidationError::new();
-        err.push("Email is required", || self.email.len() <= 0);
-        err.push("Password is required", || self.password.len() <= 0);
+        err.push("Email is required", || self.email.is_empty());
+        err.push("Password is required", || self.password.is_empty());
         err.to_result(())
     }
 }
@@ -67,7 +67,7 @@ async fn extract_bearer_token(req: &HttpRequest) -> Result<String, ServiceError>
     let req_headers = req.headers();
     let bearer_token = req_headers
         .get(header::AUTHORIZATION)
-        .ok_or(ServiceError::AuthError("Unauthorized".into()))?
+        .ok_or_else(|| ServiceError::AuthError("Unauthorized".into()))?
         .to_str()?
         .split(' ')
         .collect::<Vec<&str>>();

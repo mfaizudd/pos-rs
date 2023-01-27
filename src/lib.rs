@@ -5,6 +5,9 @@ pub mod errors;
 pub mod handlers;
 pub mod models;
 pub mod validation;
+mod startup;
+
+pub use startup::run;
 
 #[derive(Clone)]
 pub struct AppState {

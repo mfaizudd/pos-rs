@@ -33,7 +33,7 @@ async fn register(
         password,
     } = input_user;
     let existing_user = db::users::find_by_email(&email, &db).await.ok();
-    if let Some(_) = existing_user {
+    if existing_user.is_some() {
         return Err(ServiceError::BadRequest("User already exists".into()));
     }
     let admin_email = env::var("ADMIN_EMAIL").ok();

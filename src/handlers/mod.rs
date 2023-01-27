@@ -1,13 +1,7 @@
-use actix_web::web::ServiceConfig;
-
 pub mod auth;
+mod configuration;
 pub mod products;
-pub mod users;
 pub mod transactions;
+pub mod users;
 
-pub fn configuration(cfg: &mut ServiceConfig) {
-    cfg.configure(users::routes)
-        .configure(auth::routes)
-        .configure(products::routes)
-        .configure(transactions::routes);
-}
+pub use configuration::configuration;

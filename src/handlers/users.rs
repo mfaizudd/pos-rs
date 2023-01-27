@@ -51,7 +51,7 @@ async fn create_user(
         role,
     } = input_user;
     let existing_user = db::users::find_by_email(&email, &db).await.ok();
-    if let Some(_) = existing_user {
+    if existing_user.is_some() {
         return Err(ServiceError::BadRequest("User already exists".into()));
     }
     let user = db::users::add(&full_name, &email, &password, role, &db).await?;
@@ -98,6 +98,6 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
         get_user,
         create_user,
         update_user,
-        delete_user
+        delete_user,
     ]);
 }
